@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Accueil
+{% endblock %}
+
+{% block content %}
+    <h1>Mise en production</span></h1>
+    <p class="lead">Le projet GoldenLine n'est pas encore en production.</p>
+    <div class="actions">
+      <p>Avant de lancer la mise en production, assurez-vous de disposer des éléments suivants :</p>
+      <ul>
+        <li>Adresse IP du serveur PostreSQL et port de connexion</li>
+        <li>Identifiants d'un compte utilisateur PostreSQL avec droits de création d'une base de données</li>
+      </ul>
+    </div>
+    
+    <a href="/back-office/templates/db_params.html" class="btn btn-primary">Suivant ></a>
+{% endblock %}

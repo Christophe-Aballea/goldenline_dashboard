@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Mise en production</h1>
+  <p class="lead">Création de la base de données</p>
+  {% if error %}
+    <div class="alert alert-danger" role="alert">
+        {% for message in error %}
+            {% if loop.first %}
+                <p class="first">{{ message }}</p>
+            {% elif loop.index == 2 %}
+                <p class="second">{{ message }}</p><ul>
+            {% elif loop.last %}
+                <li class="last"><a href="https://github.com/Christophe-Aballea/goldenline/blob/main/templates/help/db_connection.md" target="_blank">Résoudre les problèmes de connexion <i class="fas fa-external-link-alt"></i></a></li>
+            {% else %}
+                <li class="other">{{ message }}</li>
+            {% endif %}
+        {% endfor %}
+        </ul>       
+    </div>
+  {% endif %}
+  <div class="actions">
+    <form action="" method="POST">
+        <div class="form-group">
+            <label for="db_name">Nom base de données</label>
+            <input type="text" name="db_name" id="db_name" class="form-control" value="goldenline" autofocus required>
+        </div>
+        <div class="form-group">
+            <label for="source_schema">Source</label>
+            <input type="text" name="source_schema" id="source_schema" class="form-control" value="gl_source" required>
+        </div>
+        <div class="form-group">
+            <label for="marketing_schema">Marketing</label>
+            <input type="text" name="marketing_schema" id="marketing_schema" class="form-control" value="gl_marketing" required>
+        </div>
+        <div class="form-group">
+            <label for="users_schema">Users</label>
+            <input type="text" name="users_schema" id="users_schema" class="form-control" value="gl_roles" required>
+        </div>
+        <div class="form-group action-buttons">
+            <a href="/back-office/templates/index.html" class="btn btn-secondary">Annuler</a>
+            <input class="btn btn-primary" type="submit" value="Suivant >">
+        </div>
+    </form>
+  </div>
+{% endblock %}

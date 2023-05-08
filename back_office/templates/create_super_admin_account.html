@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Mise en production</h1>
+  <p class="lead">Création du compte super-utilisateur, seul compte habilité à créer des comptes administrateurs.</p>
+  {% if error %}
+    <div class="alert alert-danger" role="alert">
+        {% for message in error %}
+            {% if loop.first %}
+                <p class="first">{{ message }}</p>
+            {% elif loop.index == 2 %}
+                <p class="second">{{ message }}</p><ul>
+            {% elif loop.last %}
+                <li class="last"><a href="https://github.com/Christophe-Aballea/goldenline/blob/main/templates/help/db_connection.md" target="_blank">Création du compte super-utilisateur <i class="fas fa-external-link-alt"></i></a></li>
+            {% else %}
+                <li class="other">{{ message }}</li>
+            {% endif %}
+        {% endfor %}
+        </ul>       
+    </div>
+  {% endif %}
+  <div class="actions">
+    <form action="/back-office/create-super-admin-account" method="post">
+        <div class="form-group">
+        <label for="prenom">Prénom</label>
+        <input type="text" class="form-control" id="prenom" name="prenom" autofocus required>
+        </div>
+        <div class="form-group">
+        <label for="nom">Nom</label>
+        <input type="text" class="form-control" id="nom" name="nom" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Adresse mail</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <div class="form-group action-buttons">
+            <a href="/back-office/templates/index.html" class="btn btn-secondary">Annuler</a>
+            <button type="submit" class="btn btn-primary">Suivant ></button>
+        </div>
+    </form>
+  </div>
+{% endblock %}

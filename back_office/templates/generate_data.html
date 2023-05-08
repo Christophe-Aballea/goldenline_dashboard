@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Mise en production</h1>
+  <p class="lead">Génération des données</p>
+  {% if error %}
+    <div class="alert alert-danger" role="alert">
+        {% for message in error %}
+            {% if loop.first %}
+                <p class="first">{{ message }}</p>
+            {% elif loop.index == 2 %}
+                <p class="second">{{ message }}</p><ul>
+            {% elif loop.last %}
+                <li class="last"><a href="https://github.com/Christophe-Aballea/goldenline/blob/main/templates/help/db_connection.md" target="_blank">Résoudre les problèmes de connexion <i class="fas fa-external-link-alt"></i></a></li>
+            {% else %}
+                <li class="other">{{ message }}</li>
+            {% endif %}
+        {% endfor %}
+        </ul>       
+    </div>
+  {% endif %}
+  <div class="actions">
+    <form action="" method="POST">
+        <div class="form-group">
+            <label for="nb_clients">Nombre de clients à générer</label>
+            <input type="text" name="nb_clients" id="nb_clients" class="form-control" value="3 000 000" oninput="validateInput(this)" required>
+        </div>
+        <div class="form-group">
+            <label for="nb_collectes">Nombre de collectes à générer</label>
+            <input type="text" name="nb_collectes" id="nb_collectes" class="form-control" value="40 000 000" oninput="validateInput(this)" required>
+        <div class="form-group action-buttons">
+            <a href="/back-office/templates/index.html" class="btn btn-secondary">Annuler</a>
+            <input class="btn btn-primary" type="submit" value="Suivant >">
+        </div>
+    </form>
+  </div>
+{% endblock %}

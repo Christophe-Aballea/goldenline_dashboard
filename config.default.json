@@ -1,0 +1,53 @@
+{
+    "production": false,
+    "initialization": {
+        "stage": 0,
+        "stages": [
+            {
+                "name": "check_prerequisites",
+                "url": "/back-office/check-prerequisites",
+                "completed": false
+            },
+            {
+                "name": "create_super_admin_account",
+                "url": "/back-office/create-super-admin-account",
+                "completed": false
+            },
+            {
+                "name": "create_database",
+                "url": "/back-office/create-database",
+                "completed": false
+            },
+            {
+                "name": "generate_data",
+                "url": "/back-office/generate-data",
+                "completed": false
+            },
+            {
+                "name": "transfer_and_anonymize_data",
+                "url": "/back-office/transfer-and-anonymize-data",
+                "completed": false
+            },
+            {
+                "name": "verify_accounts",
+                "url": "/back-office/verify-accounts",
+                "completed": false
+            },
+            {
+                "name": "create_user_account",
+                "url": "/back-office/create-user-account",
+                "completed": false
+            }
+        ]
+    },
+    "database": {
+        "host": "",
+        "port": "",
+        "user": "",
+        "password": "",
+        "db_name": "",
+        "source_schema": "",
+        "marketing_schema": "",
+        "users_schemas": ""
+    }
+}

@@ -1,0 +1,6 @@
+.python-version
+__pycache__
+db*.html
+users_schema.sql
+config.json
+*_page.css

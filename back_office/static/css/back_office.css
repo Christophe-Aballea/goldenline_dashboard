@@ -1,0 +1,56 @@
+.logo {
+    max-width: 200px;
+}
+.container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.actions {
+    text-align: left;
+}
+.actions p {
+    margin-bottom: 0;
+}
+.form-group label {
+  margin-bottom: 0.2rem;
+}
+.form-group {
+  margin-bottom: 1rem;
+}
+.action-buttons {
+  margin-top: 1.5rem;
+}
+.action-buttons .btn {
+  margin-right: 1rem;
+}
+.alert p.first {
+  font-weight: bold;
+  color: crimson;
+}
+.alert p.second {
+  margin-bottom: 0;
+  font-weight: bold;
+}
+.alert li.other {
+  /* Style de liste avec puces */
+  text-align: left;
+  list-style-type: disc;
+  margin-left: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.alert li.last {
+  text-align: left;
+  list-style-type: disclosure-closed;
+  margin-left: 0;
+  margin-top: 1rem;
+  margin-bottom: 0;
+  color: darkslateblue;
+}
+.alert p.last a {
+  color: inherit;
+  text-decoration: underline;
+}
