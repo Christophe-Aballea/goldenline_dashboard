@@ -1,6 +1,6 @@
 .python-version
 __pycache__
-db*.html
-users_schema.sql
+db_*.html
+populate_users_schema_tables.sql
 config.json
 *_page.css
