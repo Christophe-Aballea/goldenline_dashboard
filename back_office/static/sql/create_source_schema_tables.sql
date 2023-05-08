@@ -24,5 +24,5 @@ CREATE TABLE IF NOT EXISTS collectes (
     montant_textile DECIMAL(7,2) NOT NULL DEFAULT 0,
     montant_multimedia DECIMAL(7,2) NOT NULL DEFAULT 0,
     id_client INTEGER NOT NULL,
-    FOREIGN KEY (id_client) REFERENCES client (id_client)
+    FOREIGN KEY (id_client) REFERENCES clients (id_client)
 );

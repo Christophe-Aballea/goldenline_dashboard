@@ -22,7 +22,9 @@ def close_connection(conn, cursor):
     cursor.close()
     conn.close()
 
-
+###########################################################
+#  CREATION BASE DE DONNEES - TABLES - PROCEDURE STOCKEE  #
+###########################################################
 def create_database(db_name, source_schema, marketing_schema, users_schema):
     message = []
     success = True
@@ -108,10 +110,12 @@ def create_database(db_name, source_schema, marketing_schema, users_schema):
         success = False
         message.append("Impossible de créer les schémas.")
         message.append(f"Erreur : {str(error)}")
-
     return success, message
 
 
+###########################################################################
+#  ALIMENTATION DES TABLES STATIQUES - GENERATION DES DONNEES ALEATOIRES  #
+###########################################################################
 def generate_data():
     pass
 

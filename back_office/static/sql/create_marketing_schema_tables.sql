@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS collectes (
     id_collecte INTEGER PRIMARY KEY,
     id_client VARCHAR(64) NOT NULL,
     date_passage DATE NOT NULL,
-    FOREIGN KEY (id_client) REFERENCES client (id_client)
+    FOREIGN KEY (id_client) REFERENCES clients (id_client)
 );
 
 
@@ -40,6 +40,6 @@ CREATE TABLE IF NOT EXISTS achats (
     id_collecte INTEGER NOT NULL,
     id_categorie INTEGER NOT NULL,
     montant DECIMAL(7, 2) NOT NULL DEFAULT 0,
-    FOREIGN KEY (id_collecte) REFERENCES collecte (id_collecte),
-    FOREIGN KEY (id_categorie) REFERENCES categorie (id_categorie)
+    FOREIGN KEY (id_collecte) REFERENCES collectes (id_collecte),
+    FOREIGN KEY (id_categorie) REFERENCES categories (id_categorie)
 );
