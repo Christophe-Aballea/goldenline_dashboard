@@ -90,11 +90,25 @@ def create_database(db_name, source_schema, marketing_schema, users_schema):
             else:
                 message.append(f"Le schéma {schema} existe déjà.")
 
+        # Vérification de l'existence de la procédure stockée 'transfer_and_anonymization'
+        try:
+            cursor.execute(f"SET search_path TO {marketing_schema};")
+            sql_file_path = os.path.join(base_dir, "static", "sql", "create_transfer_and_anonymization_stored_procedure.sql")
+            with open(sql_file_path, "r") as sql_file:
+                sql_commands = sql_file.read()
+            cursor.execute(sql_commands)
+            message.append("Procédure de transfert et anonymisation créée avec succès.")
+        except Exception as error:
+            success = False
+            message.append("Impossible de créer la procédure de transfert et anonymisation.")
+            message.append(f"Erreur : {str(error)}")
+
         close_connection(conn, cursor)
     except Exception as error:
         success = False
         message.append("Impossible de créer les schémas.")
         message.append(f"Erreur : {str(error)}")
+
     return success, message
 
 
