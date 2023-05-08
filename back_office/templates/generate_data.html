@@ -22,12 +22,12 @@
   <div class="actions">
     <form id="generateDataForm" action="" method="POST">
         <div class="form-group">
-            <label for="nb_clients">Nombre de clients à générer</label>
-            <input type="text" name="nb_clients" id="nb_clients" class="form-control" value="3 000 000" oninput="validateInput(this)" required>
+            <label for="customers_number">Nombre de clients à générer</label>
+            <input type="text" name="customers_number" id="customers_number" class="form-control" value="3 000 000" oninput="validateInput(this)" required>
         </div>
         <div class="form-group">
-            <label for="nb_collectes">Nombre de collectes à générer</label>
-            <input type="text" name="nb_collectes" id="nb_collectes" class="form-control" value="40 000 000" oninput="validateInput(this)" required>
+            <label for="collections_number">Nombre de collectes à générer</label>
+            <input type="text" name="collections_number" id="collections_number" class="form-control" value="40 000 000" oninput="validateInput(this)" required>
         </div>
         <div class="form-group">
             <label for="start_date">Date de début d'historique</label>
@@ -39,6 +39,5 @@
         </div>
     </form>
   </div>
-
   <script src="/back-office/static/js/generate_data.js"></script>
 {% endblock %}
