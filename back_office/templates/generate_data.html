@@ -2,7 +2,7 @@
 
 {% block content %}
   <h1>Mise en production</h1>
-  <p class="lead">Génération des données</p>
+  <p class="lead">Génération du jeu de données aléatoires. Les collectes seront réparties aléatoirement entre la date de début d'historique souhaitée et hier, et seront affectées aléatoirement aux clients. Certains clients pourront ne faire l'objet d'aucune collecte.</p>
   {% if error %}
     <div class="alert alert-danger" role="alert">
         {% for message in error %}
@@ -20,7 +20,7 @@
     </div>
   {% endif %}
   <div class="actions">
-    <form action="" method="POST">
+    <form id="generateDataForm" action="" method="POST">
         <div class="form-group">
             <label for="nb_clients">Nombre de clients à générer</label>
             <input type="text" name="nb_clients" id="nb_clients" class="form-control" value="3 000 000" oninput="validateInput(this)" required>
@@ -28,10 +28,17 @@
         <div class="form-group">
             <label for="nb_collectes">Nombre de collectes à générer</label>
             <input type="text" name="nb_collectes" id="nb_collectes" class="form-control" value="40 000 000" oninput="validateInput(this)" required>
+        </div>
+        <div class="form-group">
+            <label for="start_date">Date de début d'historique</label>
+            <input type="date" name="start_date" id="start_date" class="form-control" value="2020-01-01" required>
+        </div>
         <div class="form-group action-buttons">
             <a href="/back-office/templates/index.html" class="btn btn-secondary">Annuler</a>
             <input class="btn btn-primary" type="submit" value="Suivant >">
         </div>
     </form>
   </div>
+
+  <script src="/back-office/static/js/generate_data.js"></script>
 {% endblock %}
