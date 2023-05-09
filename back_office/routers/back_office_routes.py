@@ -112,7 +112,7 @@ def process_create_database(request: Request, db_name: str = Form(...), source_s
     #return {"message": [{"success": success, "message": message}]}
     if success:
         # Mise à jour du statut de l'étape (terminée) et l'état d'avancement
-        # config.update_database_info(db_name, source_schema, marketing_schema, users_schema)
+        config.update_database_info(db_name, source_schema, marketing_schema, users_schema)
         config.set_stage_completed("create_database")
         config.increment_stage()
         return RedirectResponse(url="/back-office/redirect-to-next-stage", status_code=303)        
@@ -122,19 +122,20 @@ def process_create_database(request: Request, db_name: str = Form(...), source_s
 
 
 # back-office/generate_data/
-@router.get("/generate_data", response_class=HTMLResponse)
+@router.get("/generate-data", response_class=HTMLResponse)
 def create_database_form(request: Request):
     return templates.TemplateResponse("generate_data.html", {"request": request})
 
-@router.post("/generate_data")
-def process_generate_data(request: Request, db_name: str = Form(...), source_schema: str = Form(...), marketing_schema: str = Form(...), users_schema: str = Form(...)):
-    success, message = generate_data(db_name, source_schema, marketing_schema, users_schema)
+@router.post("/generate-data")
+def process_generate_data(request: Request, customers_number: str = Form(...), collections_number: str = Form(...), start_date: str = Form(...)):
+    success, message = generate_data(int(customers_number.replace(' ','')), int(collections_number.replace(' ','')), start_date)
     if success:
         # Mise à jour du statut de l'étape (terminée) et l'état d'avancement
         # config.update_database_info(db_name, source_schema, marketing_schema, users_schema)
         config.set_stage_completed("generate_data")
         config.increment_stage()
-        return RedirectResponse(url="/back-office/redirect-to-next-stage", status_code=303)        
+        return {"message": message}
+        # return RedirectResponse(url="/back-office/redirect-to-next-stage", status_code=303)        
     else:
         message = ["Un problème est survenu", "Log :"] + message + ["lien"]
         return templates.TemplateResponse("create_database.html", {"request": request, "error": message})

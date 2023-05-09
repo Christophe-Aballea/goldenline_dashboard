@@ -20,7 +20,7 @@ $$ LANGUAGE plpgsql;
 
 
 -- Procédure stockée 'transfer_and_anonymization'
-CREATE OR REPLACE PROCEDURE transfer_data(source_schema TEXT, marketing_schema TEXT)
+CREATE OR REPLACE PROCEDURE transfer_data_and_anonymize(source_schema TEXT, marketing_schema TEXT)
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -42,8 +42,8 @@ BEGIN
             %I.csp.id_csp
         FROM %I.clients AS c
         JOIN %I.csp ON c.csp = %I.csp.libelle
-        WHERE (%L IS NULL) OR (c.id_client > %L);
-    ', marketing_schema, marketing_schema, marketing_schema, source_schema, marketing_schema, marketing_schema, v_last_execution, v_last_execution);
+        WHERE (%L IS NULL) OR (%I.hash_client_data(c.id_client, c.email, c.telephone) > (SELECT COALESCE(MAX(id_client), %L) FROM %I.clients));
+    ', marketing_schema, marketing_schema, marketing_schema, source_schema, marketing_schema, marketing_schema, v_last_execution, marketing_schema, '', marketing_schema);
 
     -- Transfert des données de la table collectes
     EXECUTE format('
@@ -54,8 +54,8 @@ BEGIN
             col.date_heure_passage::DATE
         FROM %I.collectes AS col
         JOIN %I.clients AS c ON col.id_client = c.id_client
-        WHERE (%L IS NULL) OR (col.date_heure_passage > %L);
-    ', marketing_schema, marketing_schema, source_schema, source_schema, v_last_execution, v_last_execution);
+        WHERE (%L IS NULL) OR (col.date_heure_passage > %L) AND (%I.hash_client_data(c.id_client, c.email, c.telephone) NOT IN (SELECT id_client FROM %I.clients));
+    ', marketing_schema, marketing_schema, source_schema, source_schema, v_last_execution, v_last_execution, marketing_schema, marketing_schema);
 
     -- Transfert des données vers la table achats pour chaque catégorie
     FOR v_id_csp_mapping IN 1..4 LOOP
@@ -70,7 +70,7 @@ BEGIN
                     WHEN 3 THEN col.montant_textile
                     WHEN 4 THEN col.montant_multimedia
                 END
-            FROM %I.collecte AS col
+            FROM %I.collectes AS col
             WHERE 
                 ((%L IS NULL) OR (col.date_heure_passage > %L)) AND
                 CASE %L::INTEGER

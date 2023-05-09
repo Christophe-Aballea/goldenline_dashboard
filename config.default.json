@@ -48,6 +48,6 @@
         "db_name": "",
         "source_schema": "",
         "marketing_schema": "",
-        "users_schemas": ""
+        "users_schema": ""
     }
 }

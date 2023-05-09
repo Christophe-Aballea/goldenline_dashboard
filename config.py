@@ -42,6 +42,15 @@ def update_prerequisites_info(host, port, user, password):
     # Save the updated config to the config.json file
     save_config()
 
+def update_database_info(db_name, source_schema, marketing_schema, users_schema):
+    global config
+    config["database"]["db_name"] = db_name
+    config["database"]["source_schema"] = source_schema
+    config["database"]["marketing_schema"] = marketing_schema
+    config["database"]["users_schema"] = users_schema
+    # Save the updated config to the config.json file
+    save_config()
+
 def set_stage_completed(stage_name):
     global config
     for stage in config["initialization"]["stages"]:
