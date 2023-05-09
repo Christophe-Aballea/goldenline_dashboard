@@ -4,10 +4,19 @@ import pandas as pd
 import numpy as np
 import psycopg2.pool
 import psycopg2
+from typing import Callable
+import uuid
+import asyncio
+
 from config import config as cf
+
 
 config = cf["database"]
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+tasks_status = {}
+
+def update_task_status(task_id: str, status: str):
+    tasks_status[task_id] = status
 
 
 # Connexion base de donnée
@@ -508,21 +517,26 @@ def create_super_user_admin():
 #  TRANSFERT SCHEMA SOURCE -> ANONYMISATION CLIENTS -> SCHEMA MARKETING  #
 #  ENREGISTREMENT COMPTE SUPER-ADMIN SCHEMA USERS                        #
 ##########################################################################
-def generate_data(customer_number, collections_number, start_date):
-    # Remplissage aléatoire schema source
-    populate_source_schema_tables(customer_number, collections_number, start_date)
+async def generate_data(task_id, customer_number, collections_number, start_date, update_status_callback: Callable[[str, str], None]):
+    update_status_callback(task_id, "running")
+    try:
+        # Remplissage aléatoire schema source
+        populate_source_schema_tables(customer_number, collections_number, start_date)
 
-    # Tables statiques
-    populate_marketing_schema_static_tables()
+        # Tables statiques
+        populate_marketing_schema_static_tables()
 
-    # Transfert source_schema -> anonymisation -> marketing_shema
-    transfer_and_anonymize_data()
-    print("Données clients anonymisées et transfert effectué")
+        # Transfert source_schema -> anonymisation -> marketing_shema
+        transfer_and_anonymize_data()
+        print("Données clients anonymisées et transfert effectué")
 
-    # Enregistrement du compte super-admin et suppression des traces
-    create_super_user_admin()
-    print("Compte super-admin créé avec succès")
-    
+        # Enregistrement du compte super-admin et suppression des traces
+        create_super_user_admin()
+        print("Compte super-admin créé avec succès")
+        update_status_callback(task_id, "completed")
+
+    except Exception as error:
+        update_task_status(task_id, "failed")
     '''
     # Vérification
     conn, cursor = connect_to_db(config["db_name"])

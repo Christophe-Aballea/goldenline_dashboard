@@ -3,6 +3,8 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.responses import RedirectResponse
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+import uuid
+import asyncio
 
 import config
 from config import is_in_production, config_completed_stage
@@ -11,9 +13,15 @@ from back_office.modules.prerequisites import check_prerequisites
 from back_office.modules.accounts import verify_credentials, verify_accounts, create_super_admin_account, create_user_account
 from back_office.modules.data import create_database, generate_data, transfer_and_anonymize_data
 
-router = APIRouter()
-templates = Jinja2Templates(directory="back_office/templates")
-security = HTTPBasic()
+router       = APIRouter()
+templates    = Jinja2Templates(directory="back_office/templates")
+security     = HTTPBasic()
+tasks_status = {}
+
+# Mise à jour status des tâches
+def update_task_status(task_id: str, status: str):
+    tasks_status[task_id] = status
+
 
 # Route principale "back-office/"
 @router.get("/")
@@ -42,6 +50,7 @@ def login(request: Request, email: str = Form(...), password: str = Form(...)):
     credentials = HTTPBasicCredentials(username=email, password=password)
     try:
         verify_credentials(credentials)
+        return RedirectResponse(url="/", status_code=303)
         return {"message": "Login successful"}
     except HTTPException:
         return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid email or password"})
@@ -127,8 +136,14 @@ def create_database_form(request: Request):
     return templates.TemplateResponse("generate_data.html", {"request": request})
 
 @router.post("/generate-data")
-def process_generate_data(request: Request, customers_number: str = Form(...), collections_number: str = Form(...), start_date: str = Form(...)):
-    success, message = generate_data(int(customers_number.replace(' ','')), int(collections_number.replace(' ','')), start_date)
+async def process_generate_data(request: Request, customers_number: str = Form(...), collections_number: str = Form(...), start_date: str = Form(...)):
+    task_id = str(uuid.uuid4())
+    tasks_status[task_id] = "queued"
+    customers_number = int(customers_number.replace(' ',''))
+    collections_number = int(collections_number.replace(' ',''))
+    asyncio.create_task(generate_data(task_id, customers_number, collections_number, start_date, update_task_status))
+    return {"task_id": task_id}
+    #success, message = generate_data(int(customers_number.replace(' ','')), int(collections_number.replace(' ','')), start_date)
     if success:
         # Mise à jour du statut de l'étape (terminée) et l'état d'avancement
         # config.update_database_info(db_name, source_schema, marketing_schema, users_schema)
@@ -139,3 +154,21 @@ def process_generate_data(request: Request, customers_number: str = Form(...), c
     else:
         message = ["Un problème est survenu", "Log :"] + message + ["lien"]
         return templates.TemplateResponse("create_database.html", {"request": request, "error": message})
+
+
+@router.get("/generate-data-status/{task_id}")
+async def generate_data_status(task_id: str):
+    status = tasks_status.get(task_id)
+    if status is None:
+        return {"status": "not_found"}
+    return {"status": status}
+
+
+# Route de gestion des tâches
+@router.get("/task-status/{task_id}")
+async def get_task_status(task_id: str):
+    task_status = tasks_status.get(task_id)
+    if task_status is not None:
+        return {"task_id": task_id, "status": task_status}
+    else:
+        raise HTTPException(status_code=404, detail="Task not found")
