@@ -4,9 +4,10 @@ import pandas as pd
 import numpy as np
 import psycopg2.pool
 import psycopg2
-from typing import Callable
-import uuid
 import asyncio
+import asyncpg
+
+from typing import Callable
 
 from config import config as cf
 
@@ -495,7 +496,7 @@ def transfer_and_anonymize_data():
 
     close_connection(conn, cursor)
 
-
+# Enregistrement du compte super-admin dans le schéma 'users'
 def create_super_user_admin():
     try:
         conn, cursor = connect_to_db(config["db_name"])
@@ -511,6 +512,23 @@ def create_super_user_admin():
 
     except Exception as error:
         pass
+
+# Calcul du nombre de lignes ayant dû être générées
+async def get_total_rows(db_name, host, port, user, password, marketing_schema, users_schema):
+    query = f"""
+    SELECT (
+        (SELECT COUNT(*) FROM {marketing_schema}.clients) +
+        (SELECT COUNT(*) FROM {marketing_schema}.collectes) +
+        (SELECT COUNT(*) FROM {users_schema}.users)
+    ) AS total_rows;
+    """
+    
+    conn = await asyncpg.connect(database=db_name, host=host, port=port, user=user, password=password)
+    
+    result = await conn.fetchrow(query)
+    await conn.close()
+
+    return result["total_rows"]
 
 
 ##########################################################################
@@ -533,16 +551,18 @@ async def generate_data(task_id, customer_number, collections_number, start_date
         # Enregistrement du compte super-admin et suppression des traces
         create_super_user_admin()
         print("Compte super-admin créé avec succès")
-        update_status_callback(task_id, "completed")
+
+        # Vérification du transfert
+        total_expected = customer_number + collections_number + 1
+        print(f"Nombre d'enregistrements attendus : {total_expected:,}".replace(",", " "))
+        total_rows = await get_total_rows(config["db_name"], config["host"], config["port"], config["user"], config["password"], config['marketing_schema'], config["users_schema"])
+        print(f"Nombre d'enregistrements trouvés  : {total_rows:,}".replace(",", " "))
+
+        if total_expected == total_rows:
+            update_status_callback(task_id, "completed")
+        else:
+            update_task_status(task_id, "failed")    
 
     except Exception as error:
         update_task_status(task_id, "failed")
-    '''
-    # Vérification
-    conn, cursor = connect_to_db(config["db_name"])
-    cursor.execute(f"SET search_path TO {config['marketing_schema']};")
 
-
-    close_connection(conn, cursor)
-    '''
-    return True, "Touti va bene"
