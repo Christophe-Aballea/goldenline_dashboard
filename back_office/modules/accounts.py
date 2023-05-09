@@ -51,7 +51,7 @@ VALUES ('{prenom}', '{nom}', '{email}', '{password_hash}', (SELECT id_role FROM 
             sql_file.write(create_roles_table)
             sql_file.write(create_users_table)
 
-        with open("back_office/static/sql/populate_users_schema_tables.sql", "w") as sql_file:
+        with open("back_office/static/sql/create_super_admin_user.sql", "w") as sql_file:
             sql_file.write(insert_roles)
             sql_file.write(insert_super_admin)
         

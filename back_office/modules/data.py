@@ -501,7 +501,7 @@ def create_super_user_admin():
     try:
         conn, cursor = connect_to_db(config["db_name"])
         cursor.execute(f"SET search_path TO {config['users_schema']};")
-        sql_file_path = os.path.join(base_dir, "static", "sql", "populate_users_schema_tables.sql")
+        sql_file_path = os.path.join(base_dir, "static", "sql", "create_super_admin_user.sql")
         with open(sql_file_path, "r") as sql_file:
             sql_commands = sql_file.read()
         cursor.execute(sql_commands)
