@@ -10,6 +10,7 @@ import asyncpg
 from typing import Callable
 
 from config import config as cf
+from config import set_stage_completed, increment_stage
 
 
 config = cf["database"]
@@ -544,6 +545,10 @@ async def generate_data(task_id, customer_number, collections_number, start_date
         # Tables statiques
         populate_marketing_schema_static_tables()
 
+        # Mise à jour du statut de l'étape (terminée) et l'état d'avancement
+        set_stage_completed("generate_data")
+        increment_stage()
+
         # Transfert source_schema -> anonymisation -> marketing_shema
         transfer_and_anonymize_data()
         print("Données clients anonymisées et transfert effectué")
@@ -559,6 +564,9 @@ async def generate_data(task_id, customer_number, collections_number, start_date
         print(f"Nombre d'enregistrements trouvés  : {total_rows:,}".replace(",", " "))
 
         if total_expected == total_rows:
+            # Mise à jour du fichier de configuration, du statut de l'étape (terminée) et l'état d'avancement
+            set_stage_completed("transfer_and_anonymize_data")
+            increment_stage()
             update_status_callback(task_id, "completed")
         else:
             update_task_status(task_id, "failed")    
