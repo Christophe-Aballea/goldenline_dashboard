@@ -143,19 +143,9 @@ async def process_generate_data(request: Request, customers_number: str = Form(.
     collections_number = int(collections_number.replace(' ',''))
     asyncio.create_task(generate_data(task_id, customers_number, collections_number, start_date, update_task_status))
     return {"task_id": task_id}
-    #success, message = generate_data(int(customers_number.replace(' ','')), int(collections_number.replace(' ','')), start_date)
-    if success:
-        # Mise à jour du statut de l'étape (terminée) et l'état d'avancement
-        # config.update_database_info(db_name, source_schema, marketing_schema, users_schema)
-        config.set_stage_completed("generate_data")
-        config.increment_stage()
-        return {"message": message}
-        # return RedirectResponse(url="/back-office/redirect-to-next-stage", status_code=303)        
-    else:
-        message = ["Un problème est survenu", "Log :"] + message + ["lien"]
-        return templates.TemplateResponse("create_database.html", {"request": request, "error": message})
 
 
+# Route de gestion des tâches
 @router.get("/generate-data-status/{task_id}")
 async def generate_data_status(task_id: str):
     status = tasks_status.get(task_id)
@@ -163,12 +153,3 @@ async def generate_data_status(task_id: str):
         return {"status": "not_found"}
     return {"status": status}
 
-
-# Route de gestion des tâches
-@router.get("/task-status/{task_id}")
-async def get_task_status(task_id: str):
-    task_status = tasks_status.get(task_id)
-    if task_status is not None:
-        return {"task_id": task_id, "status": task_status}
-    else:
-        raise HTTPException(status_code=404, detail="Task not found")
