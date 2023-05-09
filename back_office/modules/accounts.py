@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS users (
     prenom VARCHAR(25) NOT NULL,
     email VARCHAR(64) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
+    verification_code INTEGER,
+    first_login BOLLEAN DEFAULT TRUE,
     id_role INTEGER NOT NULL,
     FOREIGN KEY (id_role) REFERENCES roles (id_role)
 );
@@ -38,8 +40,8 @@ INSERT INTO roles (libelle) VALUES
 """
 
     insert_super_admin = f"""
-INSERT INTO users (prenom, nom, email, password_hash, id_role)
-VALUES ('{prenom}', '{nom}', '{email}', '{password_hash}', (SELECT id_role FROM roles WHERE libelle = 'super-admin'));
+INSERT INTO users (prenom, nom, email, password_hash, id_role, first_login)
+VALUES ('{prenom}', '{nom}', '{email}', '{password_hash}', (SELECT id_role FROM roles WHERE libelle = 'super-admin'), FALSE);
 """
 
     # Création des fichiers 'users_schema.sql' et 'users_data.sql' avec les requêtes SQL
