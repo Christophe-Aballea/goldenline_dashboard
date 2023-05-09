@@ -20,11 +20,23 @@
 .form-group {
   margin-bottom: 1rem;
 }
+
+
 .action-buttons {
   margin-top: 1.5rem;
+  text-align: center;
 }
+
 .action-buttons .btn {
   margin-right: 1rem;
+  display: inline-block;
+}
+
+.action-buttons .btn.disabled {
+  background-color: #f8f9fa;
+  border-color: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
 }
 .alert p.first {
   font-weight: bold;
