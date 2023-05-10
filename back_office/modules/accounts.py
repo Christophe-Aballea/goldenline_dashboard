@@ -1,42 +1,9 @@
-#import jwt
-#from datetime import datetime, timedelta
 import bcrypt
-#from fastapi import HTTPException
-#from fastapi.security import HTTPBasicCredentials
 import asyncpg
-#import secrets
 
 from config import config as cfg
 config = cfg["database"]
 
-"""
-SECRET_KEY = secrets.token_hex(32)
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-
-# Création d'un token JWT
-def create_access_token(data: dict, expires_delta: timedelta = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-
-# Vérification d'un token
-def decode_access_token(token: str):
-    try:
-        token_bytes = token.encode("utf-8")
-        payload = jwt.decode(token_bytes, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload
-    except jwt.PyJWTError as error:
-        print(str(error))
-        raise HTTPException(status_code=401, detail="Invalid token")
-"""
 
 def verify_accounts():
     pass
@@ -71,36 +38,39 @@ VALUES ('{prenom}', '{nom}', '{email}', '{password_hash}', (SELECT id_role FROM 
 
 
 
-def create_user_account():
-    pass
+async def create_user_account(prenom, nom, email, role, first_login=True, password="non défini"):
+    conn = None
+    try:
+        # Récupération des éventuels password_hash liés à l'email de l'utilisateur
+        get_email_password_hashes = f"""
+        SELECT password_hash FROM users.users
+        WHERE email = $1;
+        """
+    
+        conn = await asyncpg.connect(database=config["db_name"], host=config["host"], port=config["port"], user=config["user"], password=config["password"])
+        stored_password_hashes = await conn.fetch(get_email_password_hashes, email)
 
+        # Le mot de passe à créer est-il déjà utilisé avec l'email de l'utilisateur ?
+        is_unused = sum([bcrypt.checkpw(password.encode("utf-8"), stored["password_hash"].encode('utf-8')) for stored in stored_password_hashes]) == 0
 
-'''
-async def verify_credentials(credentials: HTTPBasicCredentials):
-    conn = await asyncpg.connect(database=config["db_name"], host=config["host"], port=config["port"], user=config["user"], password=config["password"])
-    query = f"""
-    SELECT id_user, email, password_hash, id_role FROM {config['users_schema']}.users WHERE email = '{credentials.username}';"""
-    results = await conn.fetch(query)
-    await conn.close()
-
-    # Parcourir les résultats et vérifier les informations d'identification
-    user_found = False
-    for result in results:
-        id_user = result["id_user"]
-        email = result["email"]
-        password_hash = result["password_hash"]
-        id_role = result["id_role"]
+        if is_unused or password == "non défini":
+            # Génération du hash du mot de passe
+            password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
         
-        # Vérifiez si le mot de passe est correct
-        if bcrypt.checkpw(credentials.password.encode("utf-8"), password_hash.encode("utf-8")):
-            user_found = True
-            break
+            # Requête d'ajout d'un compte utilisateur
+            insert_account_query = f"""
+            INSERT INTO {config["users_schema"]}.users (prenom, nom, email, password_hash, id_role, first_login)
+            VALUES ($1, $2, $3, $4, (SELECT id_role FROM {config["users_schema"]}.roles WHERE libelle = $5), FALSE);
+            """        
+            await conn.fetchval(insert_account_query, prenom, nom, email, password_hash, role)
 
-    if user_found:
-        if id_role in (1, 2):
-            access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-            access_token = create_access_token(data={"id_user": id_user, "email": email, "id_role": id_role},
-                                               expires_delta=access_token_expires,)
-            return True, access_token
-    return user_found, None
-'''
+            return True, []
+        else:
+            message = ["Impossible de créer un autre compte avec ce mot de passe."]
+            return False, message
+    except Exception as error:
+        return False, [f"Erreur lors de la création du compte : {str(error)}"]
+    finally:
+        if conn:
+            await conn.close()
+
