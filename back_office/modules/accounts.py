@@ -1,8 +1,6 @@
 import bcrypt
-import asyncpg
 
-from config import config as cfg
-config = cfg["database"]
+from back_office.modules.db_utils import create_connection, users_schema
 
 
 def verify_accounts():
@@ -26,7 +24,7 @@ INSERT INTO users (prenom, nom, email, password_hash, id_role, first_login)
 VALUES ('{prenom}', '{nom}', '{email}', '{password_hash}', (SELECT id_role FROM roles WHERE libelle = 'super-admin'), FALSE);
 """
 
-    # Création du fichier 'users_data.sql'
+    # Création du fichier 'create_super_admin_user.sql'
     try:
         with open("back_office/static/sql/create_super_admin_user.sql", "w") as sql_file:
             sql_file.write(insert_roles)
@@ -47,7 +45,7 @@ async def create_user_account(prenom, nom, email, role, first_login=True, passwo
         WHERE email = $1;
         """
     
-        conn = await asyncpg.connect(database=config["db_name"], host=config["host"], port=config["port"], user=config["user"], password=config["password"])
+        conn = await create_connection()
         stored_password_hashes = await conn.fetch(get_email_password_hashes, email)
 
         # Le mot de passe à créer est-il déjà utilisé avec l'email de l'utilisateur ?
@@ -59,8 +57,8 @@ async def create_user_account(prenom, nom, email, role, first_login=True, passwo
         
             # Requête d'ajout d'un compte utilisateur
             insert_account_query = f"""
-            INSERT INTO {config["users_schema"]}.users (prenom, nom, email, password_hash, id_role, first_login)
-            VALUES ($1, $2, $3, $4, (SELECT id_role FROM {config["users_schema"]}.roles WHERE libelle = $5), FALSE);
+            INSERT INTO {users_schema}.users (prenom, nom, email, password_hash, id_role, first_login)
+            VALUES ($1, $2, $3, $4, (SELECT id_role FROM {users_schema}.roles WHERE libelle = $5), FALSE);
             """        
             await conn.fetchval(insert_account_query, prenom, nom, email, password_hash, role)
 
@@ -73,4 +71,3 @@ async def create_user_account(prenom, nom, email, role, first_login=True, passwo
     finally:
         if conn:
             await conn.close()
-
