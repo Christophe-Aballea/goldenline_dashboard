@@ -1,8 +1,7 @@
-from fastapi import APIRouter, Request, Form, HTTPException, Depends, Cookie
+from fastapi import APIRouter, Request, HTTPException, Form, Depends
 from fastapi.security import HTTPBasicCredentials, HTTPBearer
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
 import uuid
 import asyncio
 
@@ -10,14 +9,15 @@ import config
 from config import is_in_production, config_completed_stage
 
 from back_office.modules.prerequisites import check_prerequisites
-from back_office.modules.accounts import verify_credentials, verify_accounts, create_super_admin_account, create_user_account
+from back_office.modules.accounts import verify_accounts, create_super_admin_account, create_user_account
 from back_office.modules.data import create_database, generate_data
-from back_office.modules.authentication import TokenData, get_token_from_cookie, get_current_user
+from back_office.modules.authentication import get_token_from_cookie, get_current_user, verify_credentials
 
 router       = APIRouter()
 templates    = Jinja2Templates(directory="back_office/templates")
 security     = HTTPBearer()
 tasks_status = {}
+
 ACCESS_TOKEN_EXPIRE_SECONDS = 1_800
 
 # Mise à jour status des tâches

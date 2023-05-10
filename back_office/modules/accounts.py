@@ -1,16 +1,16 @@
-import jwt
-from datetime import datetime, timedelta
+#import jwt
+#from datetime import datetime, timedelta
 import bcrypt
-from fastapi import HTTPException
-from fastapi.security import HTTPBasicCredentials
+#from fastapi import HTTPException
+#from fastapi.security import HTTPBasicCredentials
 import asyncpg
-import secrets
+#import secrets
 
 from config import config as cfg
 config = cfg["database"]
 
-
-SECRET_KEY = secrets.token_hex(32)  #
+"""
+SECRET_KEY = secrets.token_hex(32)
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -36,7 +36,7 @@ def decode_access_token(token: str):
     except jwt.PyJWTError as error:
         print(str(error))
         raise HTTPException(status_code=401, detail="Invalid token")
-
+"""
 
 def verify_accounts():
     pass
@@ -75,7 +75,7 @@ def create_user_account():
     pass
 
 
-
+'''
 async def verify_credentials(credentials: HTTPBasicCredentials):
     conn = await asyncpg.connect(database=config["db_name"], host=config["host"], port=config["port"], user=config["user"], password=config["password"])
     query = f"""
@@ -103,3 +103,4 @@ async def verify_credentials(credentials: HTTPBasicCredentials):
                                                expires_delta=access_token_expires,)
             return True, access_token
     return user_found, None
+'''
