@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Request, Form, HTTPException
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi import APIRouter, Request, Form, HTTPException, Depends, FastAPI
+from fastapi.security import HTTPBasic, HTTPBasicCredentials, HTTPBearer
 from fastapi.responses import RedirectResponse
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 import uuid
 import asyncio
 
@@ -10,13 +11,23 @@ import config
 from config import is_in_production, config_completed_stage
 
 from back_office.modules.prerequisites import check_prerequisites
-from back_office.modules.accounts import verify_credentials, verify_accounts, create_super_admin_account, create_user_account
+from back_office.modules.accounts import verify_credentials, verify_accounts, create_super_admin_account, create_user_account, decode_access_token
 from back_office.modules.data import create_database, generate_data, transfer_and_anonymize_data
 
 router       = APIRouter()
 templates    = Jinja2Templates(directory="back_office/templates")
-security     = HTTPBasic()
+security     = HTTPBearer()
 tasks_status = {}
+
+class TokenData(BaseModel):
+    id_user: int
+    email: str
+    id_role: int
+
+def get_current_user(token: str = Depends(security)) -> TokenData:
+    decoded_token = decode_access_token(token.credentials)
+    return TokenData(**decoded_token)
+
 
 # Mise à jour status des tâches
 def update_task_status(task_id: str, status: str):
@@ -46,14 +57,21 @@ def login(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 @router.post("/login")
-def login(request: Request, email: str = Form(...), password: str = Form(...)):
+async def login(request: Request, email: str = Form(...), password: str = Form(...)):
     credentials = HTTPBasicCredentials(username=email, password=password)
-    try:
-        verify_credentials(credentials)
-        return RedirectResponse(url="/", status_code=303)
-        return {"message": "Login successful"}
-    except HTTPException:
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid email or password"})
+    
+    user_found, token = await verify_credentials(credentials)
+    if user_found and token:
+        if not is_in_production():
+            print(config_completed_stage())
+            return RedirectResponse(url="/back-office/redirect-to-next-stage", status_code=303)
+        else:
+            return {"message": "utilisateur reconnu, aller à l'accueil Back-office"}
+    elif user_found:
+        error_message = "Autorisation refusée."
+    else:
+        error_message = "Identifiant ou mot de passe incorrect."
+    return templates.TemplateResponse("login.html", {"request": request, "error": error_message})
 
 
 ##########################################
