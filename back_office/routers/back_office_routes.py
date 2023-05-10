@@ -128,8 +128,6 @@ def create_database_form(request: Request):
 @router.post("/create-database")
 def process_create_database(request: Request, db_name: str = Form(...), source_schema: str = Form(...), marketing_schema: str = Form(...), users_schema: str = Form(...)):
     success, message = create_database(db_name, source_schema, marketing_schema, users_schema)
-    #return templates.TemplateResponse("create_database.html", {"request": request, "error": message})
-    #return {"message": [{"success": success, "message": message}]}
     if success:
         # Mise à jour du statut de l'étape (terminée) et l'état d'avancement
         config.update_database_info(db_name, source_schema, marketing_schema, users_schema)
