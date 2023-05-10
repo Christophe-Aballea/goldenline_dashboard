@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 import psycopg2.pool
 import psycopg2
-import asyncio
 import asyncpg
 
 from typing import Callable
