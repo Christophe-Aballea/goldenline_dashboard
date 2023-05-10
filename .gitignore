@@ -4,3 +4,4 @@ db_*.html
 populate_users_schema_tables.sql
 config.json
 *_page.css
+test.py
