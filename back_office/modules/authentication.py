@@ -5,10 +5,8 @@ import jwt
 import bcrypt
 import secrets
 from pydantic import BaseModel
-import asyncpg
 
-from config import config as cfg
-config = cfg["database"]
+from back_office.modules.db_utils import create_connection, users_schema
 
 
 SECRET_KEY = secrets.token_hex(32)
@@ -27,7 +25,7 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.utcnow() + timedelta(minutes=30)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -45,9 +43,9 @@ def decode_access_token(token: str):
 
 
 async def verify_credentials(credentials: HTTPBasicCredentials):
-    conn = await asyncpg.connect(database=config["db_name"], host=config["host"], port=config["port"], user=config["user"], password=config["password"])
+    conn = await create_connection()
     query = f"""
-    SELECT id_user, email, password_hash, id_role FROM {config['users_schema']}.users WHERE email = '{credentials.username}';"""
+    SELECT id_user, email, password_hash, id_role FROM {users_schema}.users WHERE email = '{credentials.username}';"""
     results = await conn.fetch(query)
     await conn.close()
 
