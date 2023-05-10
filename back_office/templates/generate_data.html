@@ -2,7 +2,8 @@
 
 {% block content %}
   <h1>Mise en production</h1>
-  <p class="lead">Génération du jeu de données aléatoires. Les collectes seront réparties aléatoirement entre la date de début d'historique souhaitée et hier, et seront affectées aléatoirement aux clients. Certains clients pourront ne faire l'objet d'aucune collecte.</p>
+  <h3>Génération du jeu de données aléatoires</h3>
+  <p class="lead">Les collectes seront réparties aléatoirement entre la date de début d'historique souhaitée et hier, et seront affectées aléatoirement aux clients. Certains clients pourront ne faire l'objet d'aucune collecte.</p>
   {% if error %}
     <div class="alert alert-danger" role="alert">
         {% for message in error %}

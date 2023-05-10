@@ -2,7 +2,8 @@
 
 {% block content %}
   <h1>Mise en production</h1>
-  <p class="lead">Création du compte super-utilisateur, seul compte habilité à créer des comptes administrateurs.</p>
+  <h3>Création du compte super-administrateur</h3>
+  <p class="lead">C'est le seul compte habilité à créer des comptes administrateurs. Une fois la base de données créée, le super-administrateur devra être connecté pour avoir accès aux dernières étapes de mise en production.</p>
   {% if error %}
     <div class="alert alert-danger" role="alert">
         {% for message in error %}
