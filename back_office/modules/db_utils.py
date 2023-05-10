@@ -3,6 +3,10 @@ import asyncpg
 
 config = cfg["database"]
 
+source_schema    = config["source_schema"]
+marketing_schema = config["marketing_schema"]
+users_schema     = config["users_schema"]
+
 async def create_connection():
     conn = await asyncpg.connect(
         database=config["db_name"],
