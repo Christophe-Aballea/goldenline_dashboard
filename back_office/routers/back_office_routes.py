@@ -37,7 +37,10 @@ def read_back_office_html(request: Request):
         next_stage = config_completed_stage()
         print(next_stage)
         if next_stage is not None:
-            return RedirectResponse(url=next_stage["url"])
+            if next_stage["need_authentication"]:
+                return RedirectResponse(url="login")
+            else:
+                return RedirectResponse(url=next_stage["url"])
         else:
             return {"message": "All stages are completed."}
 
@@ -55,7 +58,8 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
     if user_found and token:
         if not is_in_production():
             print(config_completed_stage())
-            response = RedirectResponse(url="/back-office/proute", status_code=303)
+            next_stage = config_completed_stage()
+            response = RedirectResponse(url="/back-office/redirect-to-next-stage", status_code=303)
             response.set_cookie(key="access_token", value=token, httponly=True, max_age=ACCESS_TOKEN_EXPIRE_SECONDS)
             return response
         else:
@@ -152,6 +156,28 @@ async def process_generate_data(request: Request, customers_number: str = Form(.
     collections_number = int(collections_number.replace(' ',''))
     asyncio.create_task(generate_data(task_id, customers_number, collections_number, start_date, update_task_status))
     return {"task_id": task_id}
+
+
+# back-office/verify-accounts/
+@router.get("/verify-accounts", response_class=HTMLResponse)
+async def verify_accounts_form(request: Request, token: str = Depends(get_token_from_cookie)):
+    current_user = get_current_user(token)
+    if current_user.id_role not in [1, 2]:  # 1 et 2 sont les identifiants de rôle de super-admin et admin
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return templates.TemplateResponse("verify_accounts.html", {"request": request})
+
+@router.post("/verify-accounts")
+def process_verify_accounts(request: Request):
+    success, message = verify_accounts()
+    if success:
+        # Mise à jour du statut de l'étape (terminée) et l'état d'avancement
+        #config.update_database_info(db_name, source_schema, marketing_schema, users_schema)
+        config.set_stage_completed("verify_accounts")
+        config.increment_stage()
+        return RedirectResponse(url="/back-office/redirect-to-next-stage", status_code=303)        
+    else:
+        message = ["Compte(s) manquant(s)", "Log :"] + message + ["lien"]
+        return templates.TemplateResponse("verify_accounts.html", {"request": request, "error": message})
 
 
 # Route de gestion des tâches
