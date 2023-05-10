@@ -6,36 +6,43 @@
             {
                 "name": "check_prerequisites",
                 "url": "/back-office/check-prerequisites",
+                "need_authentication": false,
                 "completed": false
             },
             {
                 "name": "create_super_admin_account",
                 "url": "/back-office/create-super-admin-account",
+                "need_authentication": false,
                 "completed": false
             },
             {
                 "name": "create_database",
                 "url": "/back-office/create-database",
+                "need_authentication": false,
                 "completed": false
             },
             {
                 "name": "generate_data",
                 "url": "/back-office/generate-data",
+                "need_authentication": false,
                 "completed": false
             },
             {
                 "name": "transfer_and_anonymize_data",
                 "url": "/back-office/transfer-and-anonymize-data",
+                "need_authentication": false,
                 "completed": false
             },
             {
                 "name": "verify_accounts",
                 "url": "/back-office/verify-accounts",
+                "need_authentication": true,
                 "completed": false
             },
             {
                 "name": "create_user_account",
                 "url": "/back-office/create-user-account",
+                "need_authentication": true,
                 "completed": false
             }
         ]
