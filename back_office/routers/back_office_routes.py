@@ -10,34 +10,15 @@ import config
 from config import is_in_production, config_completed_stage
 
 from back_office.modules.prerequisites import check_prerequisites
-from back_office.modules.accounts import verify_credentials, verify_accounts, create_super_admin_account, create_user_account, decode_access_token
-from back_office.modules.data import create_database, generate_data, transfer_and_anonymize_data
+from back_office.modules.accounts import verify_credentials, verify_accounts, create_super_admin_account, create_user_account
+from back_office.modules.data import create_database, generate_data
+from back_office.modules.authentication import TokenData, get_token_from_cookie, get_current_user
 
 router       = APIRouter()
 templates    = Jinja2Templates(directory="back_office/templates")
 security     = HTTPBearer()
 tasks_status = {}
 ACCESS_TOKEN_EXPIRE_SECONDS = 1_800
-
-class TokenData(BaseModel):
-    id_user: int
-    email: str
-    id_role: int
-
-
-async def get_token_from_cookie(access_token: str = Cookie(None)):
-    if access_token:
-        return access_token
-    else:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-
-def get_current_user(token: str = Depends(get_token_from_cookie)) -> TokenData:
-    if token is None:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    decoded_token = decode_access_token(token)
-    return TokenData(**decoded_token)
-
 
 # Mise à jour status des tâches
 def update_task_status(task_id: str, status: str):
