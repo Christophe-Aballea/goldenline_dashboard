@@ -4,12 +4,13 @@ import bcrypt
 from fastapi import HTTPException
 from fastapi.security import HTTPBasicCredentials
 import asyncpg
+import secrets
 
 from config import config as cfg
 config = cfg["database"]
 
 
-SECRET_KEY = "your_secret_key"  # Générez une clé secrète robuste pour votre application
+SECRET_KEY = secrets.token_hex(32)  #
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -29,9 +30,11 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 # Vérification d'un token
 def decode_access_token(token: str):
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        token_bytes = token.encode("utf-8")
+        payload = jwt.decode(token_bytes, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except jwt.PyJWTError:
+    except jwt.PyJWTError as error:
+        print(str(error))
         raise HTTPException(status_code=401, detail="Invalid token")
 
 

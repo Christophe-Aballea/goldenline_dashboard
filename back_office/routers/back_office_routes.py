@@ -1,7 +1,6 @@
-from fastapi import APIRouter, Request, Form, HTTPException, Depends, FastAPI
-from fastapi.security import HTTPBasic, HTTPBasicCredentials, HTTPBearer
-from fastapi.responses import RedirectResponse
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Request, Form, HTTPException, Depends, Cookie
+from fastapi.security import HTTPBasicCredentials, HTTPBearer
+from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 import uuid
@@ -18,14 +17,25 @@ router       = APIRouter()
 templates    = Jinja2Templates(directory="back_office/templates")
 security     = HTTPBearer()
 tasks_status = {}
+ACCESS_TOKEN_EXPIRE_SECONDS = 1_800
 
 class TokenData(BaseModel):
     id_user: int
     email: str
     id_role: int
 
-def get_current_user(token: str = Depends(security)) -> TokenData:
-    decoded_token = decode_access_token(token.credentials)
+
+async def get_token_from_cookie(access_token: str = Cookie(None)):
+    if access_token:
+        return access_token
+    else:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+
+def get_current_user(token: str = Depends(get_token_from_cookie)) -> TokenData:
+    if token is None:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    decoded_token = decode_access_token(token)
     return TokenData(**decoded_token)
 
 
@@ -64,7 +74,9 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
     if user_found and token:
         if not is_in_production():
             print(config_completed_stage())
-            return RedirectResponse(url="/back-office/redirect-to-next-stage", status_code=303)
+            response = RedirectResponse(url="/back-office/proute", status_code=303)
+            response.set_cookie(key="access_token", value=token, httponly=True, max_age=ACCESS_TOKEN_EXPIRE_SECONDS)
+            return response
         else:
             return {"message": "utilisateur reconnu, aller à l'accueil Back-office"}
     elif user_found:
@@ -171,3 +183,10 @@ async def generate_data_status(task_id: str):
         return {"status": "not_found"}
     return {"status": status}
 
+# Route test authentification
+@router.get("/proute")
+async def proute(token: str = Depends(get_token_from_cookie)):
+    current_user = get_current_user(token)
+    if current_user.id_role not in [1, 2]:  # 1 et 2 sont les identifiants de rôle de super-admin et admin
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return {"message": "Authorized"}
