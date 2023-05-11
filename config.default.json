@@ -34,8 +34,8 @@
                 "completed": false
             },
             {
-                "name": "verify_accounts",
-                "url": "/back-office/verify-accounts",
+                "name": "list_of_existing_accounts",
+                "url": "/back-office/list-of-existing-accounts",
                 "need_authentication": true,
                 "completed": false
             },
