@@ -20,7 +20,28 @@
         </ul>       
     </div>
   {% endif %}
-  <div class="actions">
+  <table>
+    <thead>
+      <tr>
+        <th>Rôle</th>
+        <th>Comptes</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for role, accounts in accounts.items() %}
+    <tr>
+        <td>{{ role }}</td>
+        <td>
+            <ul>
+            {% for account in accounts %}
+                <li>{{ account }}</li>
+            {% endfor %}
+            </ul>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>  <div class="actions">
     <form action="/back-office/verify-accounts" method="post">
         <div class="form-group">
         <div class="form-group action-buttons">
