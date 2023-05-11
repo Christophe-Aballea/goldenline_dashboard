@@ -7,9 +7,19 @@ from back_office.modules.db_utils import create_connection, users_schema
 async def verify_accounts():
     conn = None
     try:
+        conn = await create_connection()
         message = {}
+        # Roles existants
+        get_roles_query = f"""
+        SELECT libelle
+        FROM {users_schema}.roles
+        ORDER BY id_role;
+        """
 
-        # Nombre de comptes super-admin, admin et user
+        roles = await conn.fetch(get_roles_query)
+        message = {role["libelle"]:[] for role in roles}
+
+        # Comptes existants
         get_accounts_query = f"""
         SELECT email, libelle AS role
         FROM {users_schema}.users u
@@ -17,16 +27,11 @@ async def verify_accounts():
         ORDER BY u.id_role;
         """
 
-        conn = await create_connection()
         accounts = await conn.fetch(get_accounts_query)
 
         for account in accounts:
-            if account["role"] in message:
-                message[account["role"]].append(account["email"])
-            else:
-                message[account["role"]] = [account["email"]]
+            message[account["role"]].append(account["email"])
 
-        print(message)
         return True, message
     except Exception as error:
         return False, [f"Erreur : ", str(error)]
