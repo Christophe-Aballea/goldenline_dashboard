@@ -87,7 +87,7 @@ def get_current_user(token: str = Depends(get_token_from_cookie)) -> TokenData:
 
 # Génération d'un code de vérification aléatoire
 # Entier de 4 chiffres différents, ne commençant pas par 0
-def generate_verification_code():
+def get_verification_code():
     verification_code = [str(choice(range(1, 10)))]
 
     while len(verification_code) != 4:

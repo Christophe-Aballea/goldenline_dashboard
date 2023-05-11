@@ -2,7 +2,7 @@ import bcrypt
 from random import choice
 
 from back_office.modules.db_utils import create_connection, users_schema
-from back_office.modules.authentication import generate_verification_code
+from back_office.modules.authentication import get_verification_code
 
 async def list_of_existing_accounts():
     conn = None
@@ -67,9 +67,6 @@ async def verify_numbers_of_accounts():
         if conn:
             await conn.close()
 
-
-
-
 def create_super_admin_account(prenom, nom, email, password):
     # Génération du hash du mot de passe
     password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
@@ -119,7 +116,7 @@ async def create_user_account(prenom, nom, email, role, verification_code=None, 
             password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
             if not verification_code:
-                verification_code = generate_verification_code
+                verification_code = get_verification_code
 
             # Requête d'ajout d'un compte utilisateur
             insert_account_query = f"""
