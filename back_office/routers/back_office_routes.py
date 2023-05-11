@@ -9,7 +9,7 @@ import config
 from config import is_in_production, config_completed_stage
 
 from back_office.modules.prerequisites import check_prerequisites
-from back_office.modules.accounts import list_of_existing_accounts, create_super_admin_account, create_user_account
+from back_office.modules.accounts import verify_accounts, create_super_admin_account, create_user_account
 from back_office.modules.data import create_database, generate_data
 from back_office.modules.authentication import get_token_from_cookie, get_current_user, verify_credentials
 
@@ -158,30 +158,26 @@ async def process_generate_data(request: Request, customers_number: str = Form(.
     return {"task_id": task_id}
 
 
-# back-office/list-of-existing-accounts/
-@router.get("/list-of-existing-accounts", response_class=HTMLResponse)
-async def list_of_existing_accounts_form(request: Request, token: str = Depends(get_token_from_cookie)):
+# back-office/verify-accounts/
+@router.get("/verify-accounts", response_class=HTMLResponse)
+async def verify_accounts_form(request: Request, token: str = Depends(get_token_from_cookie)):
     current_user = get_current_user(token)
     if current_user.id_role not in [1, 2]:  # 1 et 2 sont les identifiants de rôle de super-admin et admin
         raise HTTPException(status_code=403, detail="Forbidden")
-    else:
-        success, accounts = await list_of_existing_accounts()
+    return templates.TemplateResponse("verify_accounts.html", {"request": request})
 
-    return templates.TemplateResponse("list_of_existing_accounts.html", {"request": request, "accounts": accounts})
-
-@router.post("/list-of-existing-accounts")
-async def process_list_of_existing_accounts(request: Request):
-    success, message = await list_of_existing_accounts()
+@router.post("/verify-accounts")
+def process_verify_accounts(request: Request):
+    success, message = verify_accounts()
     if success:
         # Mise à jour du statut de l'étape (terminée) et l'état d'avancement
         #config.update_database_info(db_name, source_schema, marketing_schema, users_schema)
-        #config.set_stage_completed("list_of_existing_accounts")
-        #config.increment_stage()
-        return {"message": message}
+        config.set_stage_completed("verify_accounts")
+        config.increment_stage()
         return RedirectResponse(url="/back-office/redirect-to-next-stage", status_code=303)        
     else:
         message = ["Compte(s) manquant(s)", "Log :"] + message + ["lien"]
-        return templates.TemplateResponse("list_of_existing_accounts.html", {"request": request, "error": message})
+        return templates.TemplateResponse("verify_accounts.html", {"request": request, "error": message})
 
 
 # Route de gestion des tâches
