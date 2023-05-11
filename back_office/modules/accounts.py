@@ -2,7 +2,7 @@ import bcrypt
 from random import choice
 
 from back_office.modules.db_utils import create_connection, users_schema
-
+from back_office.modules.authentication import generate_verification_code
 
 async def list_of_existing_accounts():
     conn = None
@@ -38,6 +38,36 @@ async def list_of_existing_accounts():
     finally:
         if conn:
             await conn.close()
+
+async def verify_numbers_of_accounts():
+    conn = None
+    try:
+        conn = await create_connection()
+
+        # Nombres de comptes pour chaque rôle
+        get_numbers_of_accounts_query = f"""
+        SELECT  (SELECT COUNT(*) FROM {users_schema}.users u LEFT JOIN {users_schema}.roles r ON u.role_id = r.role_id WHERE r.libelle = 'super-admin') AS super-admin,
+                (SELECT COUNT(*) FROM {users_schema}.users u LEFT JOIN {users_schema}.roles r ON u.role_id = r.role_id WHERE r.libelle = 'admin') AS admin,
+                (SELECT COUNT(*) FROM {users_schema}.users u LEFT JOIN {users_schema}.roles r ON u.role_id = r.role_id WHERE r.libelle = 'user') AS user;
+        """
+
+        account_numbers = await conn.fetch(get_numbers_of_accounts_query)
+
+        # Succès si au moins 1 compte admin / super-admin et au moin un compte user
+        success = (account_numbers["super-admin"] + account_numbers["admin"]) > 0 and account_numbers['user'] > 0
+
+        accounts = {"super-admin": account_numbers["super-admin"],
+                    "admin": account_numbers["admin"],
+                    "user": account_numbers['user']}
+        
+        return success, accounts
+    except Exception as error:
+        return False, [f"Erreur : ", str(error)]
+    finally:
+        if conn:
+            await conn.close()
+
+
 
 
 def create_super_admin_account(prenom, nom, email, password):
@@ -89,13 +119,7 @@ async def create_user_account(prenom, nom, email, role, verification_code=None, 
             password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
             if not verification_code:
-                # Génération d'un code de vérification aléatoire
-                verification_code = [str(choice(range(1, 10)))]
-
-                while len(verification_code) != 4:
-                    digit = str(choice(range(10)))
-                    if digit not in verification_code:
-                        verification_code.append(digit)
+                verification_code = generate_verification_code
 
             # Requête d'ajout d'un compte utilisateur
             insert_account_query = f"""
