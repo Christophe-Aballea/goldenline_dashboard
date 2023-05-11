@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from random import choice
 from fastapi import HTTPException, Depends, Cookie
 from fastapi.security import HTTPBasicCredentials
 import jwt
@@ -82,3 +83,15 @@ def get_current_user(token: str = Depends(get_token_from_cookie)) -> TokenData:
         raise HTTPException(status_code=401, detail="Not authenticated")
     decoded_token = decode_access_token(token)
     return TokenData(**decoded_token)
+
+
+# Génération d'un code de vérification aléatoire
+# Entier de 4 chiffres différents, ne commençant pas par 0
+def generate_verification_code():
+    verification_code = [str(choice(range(1, 10)))]
+
+    while len(verification_code) != 4:
+        digit = str(choice(range(10)))
+        if digit not in verification_code:
+            verification_code.append(digit)
+    return verification_code
