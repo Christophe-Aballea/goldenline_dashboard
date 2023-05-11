@@ -66,3 +66,33 @@
   color: inherit;
   text-decoration: underline;
 }
+
+/* list_of_existing_accounts */
+table {
+  border-collapse: collapse;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+th, td {
+  border: 1px solid #000;
+  padding: 10px;
+  text-align: left;
+}
+
+th {
+  text-align: center;
+  background-color: #f2f2f2;
+}
+
+td ul {
+  list-style-type: none; /* Supprime les puces */
+  padding: 0; /* Supprime le padding */
+  margin: 0; /* Supprime la marge */
+}
+
+/*
+td li {
+  padding: 0.5em 0; /* Ajoute de l'espace au-dessus et en dessous de chaque compte 
+}
+*/

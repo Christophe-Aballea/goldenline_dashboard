@@ -4,7 +4,7 @@ from random import choice
 from back_office.modules.db_utils import create_connection, users_schema
 
 
-async def verify_accounts():
+async def list_of_existing_accounts():
     conn = None
     try:
         conn = await create_connection()
