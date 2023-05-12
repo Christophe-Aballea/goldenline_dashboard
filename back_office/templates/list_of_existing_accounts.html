@@ -8,7 +8,7 @@
         <p class="lead">La mise production du projet est effective à compter du moment où au minimum un administrateur back-office et un utilisateur du service Marketing sont créés.</p>
         <form action="/back-office/list-of-existing-accounts" method="post">
         {% if can_be_put_into_production %}
-            <button type="submit" name="submit_button" value="production" class="btn btn-primary">Mettre en production</button>
+            <a href="/back-office/dasboard" class="btn btn-primary" role="button">Mettre en production</a>
         {% endif %}
         </form>
         <div class="card mb-4">
