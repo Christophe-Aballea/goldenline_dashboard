@@ -7,7 +7,8 @@ import bcrypt
 import secrets
 from pydantic import BaseModel
 
-from back_office.modules.db_utils import create_connection, users_schema
+from back_office.modules.db_utils import create_connection
+from config import get_users_schema
 
 
 SECRET_KEY = secrets.token_hex(32)
@@ -19,6 +20,7 @@ class TokenData(BaseModel):
     email: str
     id_role: int
 
+users_schema = get_users_schema()
 
 # Création d'un token JWT
 def create_access_token(data: dict, expires_delta: timedelta = None):
@@ -44,9 +46,13 @@ def decode_access_token(token: str):
 
 
 async def verify_credentials(credentials: HTTPBasicCredentials):
+    users_schema = get_users_schema()
+    print(f"users_schema : {users_schema}")
+
     conn = await create_connection()
     query = f"""
-    SELECT id_user, email, password_hash, id_role FROM {users_schema}.users WHERE email = '{credentials.username}';"""
+    SELECT id_user, email, password_hash, id_role FROM {users_schema}.users WHERE email = '{credentials.username}';
+    """
     results = await conn.fetch(query)
     await conn.close()
 
@@ -94,4 +100,5 @@ def get_verification_code():
         digit = str(choice(range(10)))
         if digit not in verification_code:
             verification_code.append(digit)
-    return verification_code
+
+    return int(''.join(verification_code))

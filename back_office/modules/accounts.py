@@ -1,23 +1,25 @@
 import bcrypt
 from random import choice
 
-from back_office.modules.db_utils import create_connection, users_schema
+from back_office.modules.db_utils import create_connection
 from back_office.modules.authentication import get_verification_code
+from config import get_users_schema
+
 
 async def list_of_existing_accounts():
+    users_schema = get_users_schema()
     conn = None
     try:
         conn = await create_connection()
-        message = {}
+
         # Roles existants
         get_roles_query = f"""
         SELECT libelle
         FROM {users_schema}.roles
         ORDER BY id_role;
         """
-
         roles = await conn.fetch(get_roles_query)
-        message = {role["libelle"]:[] for role in roles}
+        existing_accounts = {role["libelle"]:[] for role in roles}
 
         # Comptes existants
         get_accounts_query = f"""
@@ -28,11 +30,10 @@ async def list_of_existing_accounts():
         """
 
         accounts = await conn.fetch(get_accounts_query)
-
         for account in accounts:
-            message[account["role"]].append(account["email"])
+            existing_accounts[account["role"]].append(account["email"])
 
-        return True, message
+        return True, existing_accounts
     except Exception as error:
         return False, [f"Erreur : ", str(error)]
     finally:
@@ -40,32 +41,31 @@ async def list_of_existing_accounts():
             await conn.close()
 
 async def verify_numbers_of_accounts():
+    users_schema = get_users_schema()
     conn = None
     try:
         conn = await create_connection()
 
         # Nombres de comptes pour chaque rôle
         get_numbers_of_accounts_query = f"""
-        SELECT  (SELECT COUNT(*) FROM {users_schema}.users u LEFT JOIN {users_schema}.roles r ON u.role_id = r.role_id WHERE r.libelle = 'super-admin') AS super-admin,
-                (SELECT COUNT(*) FROM {users_schema}.users u LEFT JOIN {users_schema}.roles r ON u.role_id = r.role_id WHERE r.libelle = 'admin') AS admin,
-                (SELECT COUNT(*) FROM {users_schema}.users u LEFT JOIN {users_schema}.roles r ON u.role_id = r.role_id WHERE r.libelle = 'user') AS user;
+        SELECT  (SELECT COUNT(*) FROM {users_schema}.users u LEFT JOIN {users_schema}.roles r ON u.id_role = r.id_role WHERE r.libelle = 'super-admin') AS superadmin,
+                (SELECT COUNT(*) FROM {users_schema}.users u LEFT JOIN {users_schema}.roles r ON u.id_role = r.id_role WHERE r.libelle = 'admin') AS admin,
+                (SELECT COUNT(*) FROM {users_schema}.users u LEFT JOIN {users_schema}.roles r ON u.id_role = r.id_role WHERE r.libelle = 'user') AS user;
         """
-
-        account_numbers = await conn.fetch(get_numbers_of_accounts_query)
+        account_numbers = await conn.fetchrow(get_numbers_of_accounts_query)
 
         # Succès si au moins 1 compte admin / super-admin et au moin un compte user
-        success = (account_numbers["super-admin"] + account_numbers["admin"]) > 0 and account_numbers['user'] > 0
+        success = (account_numbers["superadmin"] + account_numbers["admin"]) > 0 and account_numbers["user"] > 0
 
-        accounts = {"super-admin": account_numbers["super-admin"],
-                    "admin": account_numbers["admin"],
-                    "user": account_numbers['user']}
-        
+        _, accounts = await list_of_existing_accounts()
+
         return success, accounts
     except Exception as error:
         return False, [f"Erreur : ", str(error)]
     finally:
         if conn:
             await conn.close()
+
 
 def create_super_admin_account(prenom, nom, email, password):
     # Génération du hash du mot de passe
@@ -97,11 +97,12 @@ VALUES ('{prenom}', '{nom}', '{email}', '{password_hash}', (SELECT id_role FROM 
 
 
 async def create_user_account(prenom, nom, email, role, verification_code=None, first_login=True, password="non défini"):
+    users_schema = get_users_schema()
     conn = None
     try:
         # Récupération des éventuels password_hash liés à l'email de l'utilisateur
         get_email_password_hashes = f"""
-        SELECT password_hash FROM users.users
+        SELECT password_hash FROM {users_schema}.users
         WHERE email = $1;
         """
     
@@ -116,20 +117,29 @@ async def create_user_account(prenom, nom, email, role, verification_code=None, 
             password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
             if not verification_code:
-                verification_code = get_verification_code
+                verification_code = get_verification_code()
+
+            # Requête de récupération de id_role
+            get_id_role_query = f"""
+            SELECT id_role
+            FROM {users_schema}.roles
+            WHERE libelle = '{role}';
+            """
+#            id_role = await conn.fetchval(get_id_role_query)
 
             # Requête d'ajout d'un compte utilisateur
             insert_account_query = f"""
-            INSERT INTO {users_schema}.users (prenom, nom, email, password_hash, verification_code, first_login, id_role)
+            INSERT INTO {users_schema}.users (prenom, nom, email, password_hash, verification_code, id_role, first_login)
             VALUES ($1, $2, $3, $4, $5, (SELECT id_role FROM {users_schema}.roles WHERE libelle = $6), $7);
             """        
             await conn.fetchval(insert_account_query, prenom, nom, email, password_hash, int(verification_code), role, first_login)
 
-            return True, []
+            return True, [f"Compte {email} / {verification_code} créé"]
         else:
             message = ["Impossible de créer un autre compte avec ce mot de passe."]
             return False, message
     except Exception as error:
+        print(f"Erreur : {str(error)}")
         return False, [f"Erreur lors de la création du compte : {str(error)}"]
     finally:
         if conn:

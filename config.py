@@ -2,13 +2,11 @@ import json
 
 
 def load_config():
-    global config
     with open("config.json", "r") as file:
         return json.load(file)
 
-
 def is_in_production():
-    global config
+    config = load_config()
     return config["production"]
 
 
@@ -34,12 +32,10 @@ def config_completed_stage():
 
 def update_prerequisites_info(host, port, user, password):
     global config
-    # Update the host and port values in the config dictionary
     config["database"]["host"] = host
     config["database"]["port"] = port
     config["database"]["user"] = user
     config["database"]["password"] = password
-    # Save the updated config to the config.json file
     save_config()
 
 def update_database_info(db_name, source_schema, marketing_schema, users_schema):
@@ -48,7 +44,6 @@ def update_database_info(db_name, source_schema, marketing_schema, users_schema)
     config["database"]["source_schema"] = source_schema
     config["database"]["marketing_schema"] = marketing_schema
     config["database"]["users_schema"] = users_schema
-    # Save the updated config to the config.json file
     save_config()
 
 def set_stage_completed(stage_name):
@@ -76,5 +71,35 @@ def save_config():
         json.dump(config, file)
 
 
-config = load_config()
+def get_users_schema() -> str:
+    config = load_config()
+    return config["database"]["users_schema"]
 
+
+def get_marketing_schema() -> str:
+    config = load_config()
+    return config["database"]["marketing_schema"]
+
+
+def get_source_schema() -> str:
+    config = load_config()
+    return config["database"]["source_schema"]
+
+
+def get_db_name():
+    config = load_config()
+    return config["database"]["db_name"]
+
+
+def get_user():
+    config = load_config()
+    return config["database"]["user"]
+
+
+def get_connection_db():
+    config=load_config()
+    db = config["database"]
+    return db["host"], db["port"], db["user"], db["password"], db["db_name"]
+
+
+config = load_config()

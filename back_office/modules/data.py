@@ -8,11 +8,10 @@ import asyncpg
 
 from typing import Callable
 
-from config import config as cf
 from config import set_stage_completed, increment_stage
+from config import get_connection_db, get_db_name, get_user, get_source_schema, get_marketing_schema, get_users_schema
 
 
-config = cf["database"]
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 tasks_status = {}
 
@@ -22,12 +21,9 @@ def update_task_status(task_id: str, status: str):
 
 # Connexion base de donnée
 def connect_to_db(dbname=None):
-    dbname = dbname or config["db_name"]
-    conn = psycopg2.connect(dbname=dbname,
-                            user=config["user"],
-                            password=config["password"],
-                            host=config["host"],
-                            port=config["port"])
+    host, port, user, password, db_name = get_connection_db()
+    dbname = dbname or db_name
+    conn = psycopg2.connect(dbname=dbname, user=user, password=password, host=host, port=port)
     conn.autocommit = True
     cursor = conn.cursor()
     return conn, cursor
@@ -43,6 +39,7 @@ def close_connection(conn, cursor):
 ###########################################################
 def create_database(db_name, source_schema, marketing_schema, users_schema):
     global base_dir
+    user = get_user()
     message = []
     success = True
 
@@ -57,7 +54,7 @@ def create_database(db_name, source_schema, marketing_schema, users_schema):
 
         # Création de la base de données si elle n'existe pas
         if not db_exists:
-            cursor.execute(f"CREATE DATABASE {db_name} WITH OWNER {config['user']};")
+            cursor.execute(f"CREATE DATABASE {db_name} WITH OWNER {user};")
             message.append(f"Base de données {db_name} créée avec succès.")
         else:
             message.append(f"La base de données {db_name} existe déjà.")
@@ -133,7 +130,8 @@ def create_database(db_name, source_schema, marketing_schema, users_schema):
 #  GENERATION DES DONNEES ALEATOIRES SCHEMA SOURCE  #
 #####################################################
 def populate_source_schema_tables(customers_number, collections_number, start_date):
-    global config
+    host, port, user, password, db_name = get_connection_db()
+    source_schema = get_source_schema()
 
     source_prenoms   = os.path.join(base_dir, "static", "source", "prenom.csv")
     source_noms      = os.path.join(base_dir, "static", "source", "patronymes.csv")
@@ -250,17 +248,12 @@ def populate_source_schema_tables(customers_number, collections_number, start_da
         end_index = start_index + batch_size
         
         # Création d'un pool de connexions
-        pool = psycopg2.pool.SimpleConnectionPool(1, 80,
-            user=config["user"],
-            password=config["password"],
-            host=config["host"],
-            port=config["port"],
-            database=config["db_name"])
+        pool = psycopg2.pool.SimpleConnectionPool(1, 80, user=user, password=password, host=host, port=port, database=db_name)
         
         # Se connecter à la base de données et insérer les données
         with pool.getconn() as conn:
             with conn.cursor() as cur:
-                cur.execute(f"SET search_path TO {config['source_schema']};")
+                cur.execute(f"SET search_path TO {source_schema};")
                 # Itérer sur chaque ligne de la dataframe et exécuter la requête d'insertion
                 for row in df_client[start_index:end_index].itertuples(index=False):
                     cur.execute(insert_query, (
@@ -290,8 +283,8 @@ def populate_source_schema_tables(customers_number, collections_number, start_da
     WHERE LENGTH(code_postal) < 5;
     '''
 
-    conn, cursor = connect_to_db(config["db_name"])
-    cursor.execute(f"SET search_path TO {config['source_schema']};")
+    conn, cursor = connect_to_db(db_name)
+    cursor.execute(f"SET search_path TO {source_schema};")
     cursor.execute(update_query)
     close_connection(conn, cursor)
     print("Champ code_postal corrigé")
@@ -352,7 +345,6 @@ def populate_source_schema_tables(customers_number, collections_number, start_da
 
         # Définition des paramètres du montant total d'une collecte
         # Distribution selon une loi normale de moyenne 75 €, écart-type de 45 €
-        min_value = 0
         mean = 75
         std_dev = 45
 
@@ -405,12 +397,7 @@ def populate_source_schema_tables(customers_number, collections_number, start_da
         df_collecte = df_collecte.round({'montant_dph': 2, 'montant_alimentaire': 2, 'montant_textile': 2, 'montant_multimedia': 2})
 
         # Création d'un pool de connexions
-        pool = psycopg2.pool.SimpleConnectionPool(1, 80,
-            user=config["user"],
-            password=config["password"],
-            host=config["host"],
-            port=config["port"],
-            database=config["db_name"])
+        pool = psycopg2.pool.SimpleConnectionPool(1, 80, user=user, password=password, host=host, port=port, database=db_name)
         
         # Requête SQL d'insertion des données
         insert_query = '''
@@ -421,7 +408,7 @@ def populate_source_schema_tables(customers_number, collections_number, start_da
         # Connection à la base de données et insértion des données
         with pool.getconn() as conn:
             with conn.cursor() as cur:
-                cur.execute(f"SET search_path TO {config['source_schema']};")
+                cur.execute(f"SET search_path TO {source_schema};")
                 # Itérer sur chaque ligne de la dataframe et exécuter la requête d'insertion
                 for row in df_collecte.itertuples(index=False):
                     cur.execute(insert_query, (
@@ -450,6 +437,8 @@ def populate_source_schema_tables(customers_number, collections_number, start_da
 #  TABLES STATIQUE SCHEMA MARKETING  #
 ######################################
 def populate_marketing_schema_static_tables():
+    db_name = get_db_name()
+    marketing_schema = get_marketing_schema()
 
     # Contenu de la table 'csp'
     libelles_csp = ["Agriculteurs exploitants",
@@ -467,8 +456,8 @@ def populate_marketing_schema_static_tables():
         initials = ''.join([word[0] for word in words if len(word) > 2]).upper()
         return initials
     
-    conn, cursor = connect_to_db(config["db_name"])
-    cursor.execute(f"SET search_path TO {config['marketing_schema']};")
+    conn, cursor = connect_to_db(db_name)
+    cursor.execute(f"SET search_path TO {marketing_schema};")
     
     # Remplissage 'sc_marketing'.csps
     for libelle in libelles_csp:
@@ -486,21 +475,34 @@ def populate_marketing_schema_static_tables():
 #  TRANSFERT SCHEMA SOURCE -> ANONYMISATION CLIENTS -> SCHEMA MARKETING  #
 ##########################################################################
 def transfer_and_anonymize_data():
-    conn, cursor = connect_to_db(config["db_name"])
-    cursor.execute(f"SET search_path TO {config['marketing_schema']};")
+    db_name = get_db_name()
+    source_schema = get_source_schema()
+    marketing_schema = get_marketing_schema()
+
+    print('TRANSFER_AND_ANONYMIZE()')
+    print(f"db_name {db_name} - source_schema {source_schema} - marketing_schema {marketing_schema}")
+    conn, cursor = connect_to_db(db_name)
+    cursor.execute(f"SET search_path TO {marketing_schema};")
     
     sql = """
         CALL {schema}.transfer_data_and_anonymize(%s, %s);
-    """.format(schema=config["marketing_schema"])
-    cursor.execute(sql, (config["source_schema"], config["marketing_schema"]))
+    """.format(schema=marketing_schema)
+
+    print(sql)
+
+    cursor.execute(sql, (source_schema, marketing_schema))
 
     close_connection(conn, cursor)
 
+
 # Enregistrement du compte super-admin dans le schéma 'users'
 def create_super_user_admin():
+    db_name = get_db_name()
+    users_schema = get_users_schema()
+
     try:
-        conn, cursor = connect_to_db(config["db_name"])
-        cursor.execute(f"SET search_path TO {config['users_schema']};")
+        conn, cursor = connect_to_db(db_name)
+        cursor.execute(f"SET search_path TO {users_schema};")
         sql_file_path = os.path.join(base_dir, "static", "sql", "create_super_admin_user.sql")
         with open(sql_file_path, "r") as sql_file:
             sql_commands = sql_file.read()
@@ -537,6 +539,10 @@ async def get_total_rows(db_name, host, port, user, password, marketing_schema, 
 ##########################################################################
 async def generate_data(task_id, customer_number, collections_number, start_date, update_status_callback: Callable[[str, str], None]):
     update_status_callback(task_id, "running")
+    host, port, user, password, db_name = get_connection_db()
+    marketing_schema = get_marketing_schema()
+    users_schema = get_users_schema()
+
     try:
         # Remplissage aléatoire schema source
         populate_source_schema_tables(customer_number, collections_number, start_date)
@@ -559,7 +565,7 @@ async def generate_data(task_id, customer_number, collections_number, start_date
         # Vérification du transfert
         total_expected = customer_number + collections_number + 1
         print(f"Nombre d'enregistrements attendus : {total_expected:,}".replace(",", " "))
-        total_rows = await get_total_rows(config["db_name"], config["host"], config["port"], config["user"], config["password"], config['marketing_schema'], config["users_schema"])
+        total_rows = await get_total_rows(db_name, host, port, user, password, marketing_schema, users_schema)
         print(f"Nombre d'enregistrements trouvés  : {total_rows:,}".replace(",", " "))
 
         if total_expected == total_rows:
