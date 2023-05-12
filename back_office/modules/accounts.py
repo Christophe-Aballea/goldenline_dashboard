@@ -26,7 +26,7 @@ async def list_of_existing_accounts():
         SELECT email, libelle AS role
         FROM {users_schema}.users u
         JOIN {users_schema}.roles r ON u.id_role = r.id_role
-        ORDER BY u.id_role;
+        ORDER BY u.id_user;
         """
 
         accounts = await conn.fetch(get_accounts_query)
