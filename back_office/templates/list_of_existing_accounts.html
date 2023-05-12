@@ -1,107 +1,87 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <h1>Mise en production</h1>
-  <h3>Vérification des comptes</h3>
-  <p class="lead">La mise production du projet est effective à compter du moment où au minimum un aministrateur back-office et un utilisateur du service Marketing sont créés.</p>
-  {% if error %}
-    <!--
-    <div class="alert alert-danger" role="alert">
-        {% for message in error %}
-            {% if loop.first %}
-                <p class="first">{{ message }}</p>
-            {% elif loop.index == 2 %}
-                <p class="second">{{ message }}</p><ul>
-            {% elif loop.last %}
-                <li class="last"><a href="https://github.com/Christophe-Aballea/goldenline/blob/main/templates/help/db_connection.md" target="_blank">Résoudre les problèmes de connexion <i class="fas fa-external-link-alt"></i></a></li>
-            {% else %}
-                <li class="other">{{ message }}</li>
-            {% endif %}
-        {% endfor %}
-        </ul>       
-    </div>
-    -->
-  {% endif %}
-  <table>
-    <thead>
-      <tr>
-        <th>super-admin</th>
-        <th>admin</th>
-        <th>user</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% set max_length = [accounts['super-admin']|length, accounts['admin']|length, accounts['user']|length]|max %}
-      {% for i in range(max_length) %}
-        <tr>
-          {% for role in ['super-admin', 'admin', 'user'] %}
-            <td>{{ accounts[role][i] if i < accounts[role]|length else '' }}</td>
-          {% endfor %}
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% if can_be_put_into_production %}
-    <button type="submit" name="submit_button" value="production" class="btn btn-primary">Mettre en production</button>
-  {% endif %}
-  
-  <div class="row justify-content-center">
-    <div class="col-md-20">
-        <div class="card">
-        <div class="card-header"><h4>Création d'un utilisateur</h4></div>
-        <div class="card-body">
-            {% if creation_success %}
-                {% for message in creation_message %}
-                <div class="alert alert-success">
-                    <p>{{ message }}</p>
-                </div>
-                {% endfor %}
-            {% endif %}
-            {% if error %}
-                {% for message in error %}
-                <div class="alert alert-danger" role="alert">
-                    <p>{{ message }}</p>
-                </div>
-                {% endfor %}
-            {% endif %}
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+        <h1>Mise en production</h1>
+        <h3>Vérification des comptes</h3>
+        <p class="lead">La mise production du projet est effective à compter du moment où au minimum un administrateur back-office et un utilisateur du service Marketing sont créés.</p>
         <form action="/back-office/list-of-existing-accounts" method="post">
-            <div class="form-group">
-                <label for="name">Nom</label>
-                <input type="text" class="form-control" id="name" name="name" autofocus required>
-            </div>
-            <div class="form-group">
-                <label for="surname">Prénom</label>
-                <input type="text" class="form-control" id="surname" name="surname" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Adresse mail</label>
-                <input type="email" class="form-control" id="email" name="email" required>
-            </div>
-            <div class="form-group">
-                <label for="role">Rôle</label><br>
-                <div style="display: inline-block; margin-right: 10px;">
-                    <input type="radio" id="superadmin" name="role" value="superadmin" required>
-                    <label for="superadmin">Superadmin</label><br>
-                </div>
-                <div style="display: inline-block; margin-right: 10px;">
-                    <input type="radio" id="admin" name="role" value="admin" required>
-                    <label for="admin">Admin</label><br>
-                </div>
-                <div style="display: inline-block;">
-                    <input type="radio" id="user" name="role" value="user" required>
-                    <label for="user">User</label>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="verification_code">Code de vérification</label>
-                <input type="text" class="form-control" id="verification_code" name="verification_code" value="{{ verification_code }}" required>
-            </div>
-            <button type="submit" name="submit_button" value="create" class="btn btn-primary">Créer</button>
+        {% if can_be_put_into_production %}
+            <button type="submit" name="submit_button" value="production" class="btn btn-primary">Mettre en production</button>
+        {% endif %}
         </form>
+        <div class="card mb-4">
+            <div class="card-header"><h4>Comptes existants</h4></div>
+            <div class="card-body">
+            <div class="row">
+                {% for role in ['superadmin', 'admin', 'user'] %}
+                <div class="col-12 col-md-4">
+                    <h5 class="card-title text-center">{{ role }}</h5>
+                    {% for account in accounts[role] %}
+                        <p class="card-text">{{ account }}</p>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+            </div>
+        </div>  
+        <div class="row justify-content-center">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header"><h4>Création d'un utilisateur</h4></div>
+                    <div class="card-body">
+                        {% if creation_success %}
+                            {% for message in creation_success %}
+                            <div class="alert alert-success" role="alert">
+                                <strong>{{ message }}</strong>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                        {% if error %}
+                            {% for message in error %}
+                            <div class="alert alert-danger" role="alert">
+                                <p>{{ message }}</p>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                        <form action="/back-office/list-of-existing-accounts" method="post">
+                            <div class="form-group">
+                                <label for="name">Nom</label>
+                                <input type="text" class="form-control" id="name" name="name" autofocus required>
+                            </div>
+                            <div class="form-group">
+                                <label for="surname">Prénom</label>
+                                <input type="text" class="form-control" id="surname" name="surname" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Adresse mail</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="role">Rôle</label><br>
+                                <div style="display: inline-block; margin-right: 10px;">
+                                    <input type="radio" id="superadmin" name="role" value="superadmin" required>
+                                    <label for="superadmin">Superadmin</label><br>
+                                </div>
+                                <div style="display: inline-block; margin-right: 10px;">
+                                    <input type="radio" id="admin" name="role" value="admin" required>
+                                    <label for="admin">Admin</label><br>
+                                </div>
+                                <div style="display: inline-block;">
+                                    <input type="radio" id="user" name="role" value="user" required>
+                                    <label for="user">User</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="verification_code">Code de vérification</label>
+                                <input type="text" class="form-control" id="verification_code" name="verification_code" value="{{ verification_code }}" required>
+                            </div>
+                            <button type="submit" name="submit_button" value="create" class="btn btn-primary">Créer</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-        </div>
-    </div>
-    </div>
-</div>
-  
+    </div>  
 {% endblock %}

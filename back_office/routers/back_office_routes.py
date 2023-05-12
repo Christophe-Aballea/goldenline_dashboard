@@ -33,9 +33,7 @@ def read_back_office_html(request: Request):
         return RedirectResponse(url="/back-office/login")
     # Redirection vers la prochaine étape de mise en production
     else:
-        print('@router.get("/") - Not in production')
         next_stage = config_completed_stage()
-        print(next_stage)
         if next_stage is not None:
             if next_stage["need_authentication"]:
                 return RedirectResponse(url="login")
@@ -173,6 +171,48 @@ async def list_of_existing_accounts_form(request: Request, token: str = Depends(
                                        "is_in_production": is_in_production()})
 
 @router.post("/list-of-existing-accounts")
+async def process_list_of_existing_accounts(request: Request, name: str = Form(...), surname: str = Form(...), email: str = Form(...),
+                                      role: str = Form(...), verification_code: str = Form(...), submit_button: str = Form(...)):
+    if submit_button == "create":
+        creation_user_success, creation_message = await create_user_account(prenom=surname, nom=name, email=email, role=role,
+                                                                            verification_code=verification_code)
+        # print(f"/list-of-existing-accounts creation_user_success : {creation_user_success} / creation_message : {creation_message}")
+        production_success, accounts = await verify_numbers_of_accounts()
+        verification_code = get_verification_code()
+        result = "creation_success" if creation_user_success else "error"
+        print(f"/list-of-existing-accounts result : {result} / creation_message : {creation_message}")    
+        print({"request": request, result: creation_message, "accounts": accounts,
+                                           "verification_code": verification_code, "can_be_put_into_production": production_success})     
+        return templates.TemplateResponse("list_of_existing_accounts.html",
+                                          {"request": request, result: creation_message, "accounts": accounts,
+                                           "verification_code": verification_code, "can_be_put_into_production": production_success})
+    elif submit_button == "production":
+        # Mise en production
+        config.update_config("production", True)
+        config.increment_stage()
+        return RedirectResponse(url="/back-office/redirect-to-next-stage", status_code=303)        
+    else:
+        message = ["Erreur", "Impossible de continuer"] + message + ["lien"]
+        return templates.TemplateResponse("list_of_existing_accounts.html", {"request": request, "error": message})
+
+
+# back-office/dashboard/
+@router.get("/dashboard", response_class=HTMLResponse)
+async def list_of_existing_accounts_form(request: Request, token: str = Depends(get_token_from_cookie)):
+    current_user = get_current_user(token)
+    if current_user.id_role not in [1, 2]:  # 1 et 2 sont les identifiants de rôle de superadmin et admin
+        raise HTTPException(status_code=403, detail="Forbidden")
+    else:
+        success, message = await list_of_existing_accounts()
+        verification_code = get_verification_code()
+        #is_in_production = is_in_production()
+        msg = "accounts" if success else "error"
+    return templates.TemplateResponse("list_of_existing_accounts.html",
+                                      {"request": request, msg: message,
+                                       "verification_code": verification_code,
+                                       "is_in_production": is_in_production()})
+
+@router.post("/dashboard")
 async def process_list_of_existing_accounts(request: Request, name: str = Form(...), surname: str = Form(...), email: str = Form(...),
                                       role: str = Form(...), verification_code: str = Form(...), submit_button: str = Form(...)):
     if submit_button == "create":
