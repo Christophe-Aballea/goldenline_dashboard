@@ -125,7 +125,6 @@ async def create_user_account(prenom, nom, email, role, verification_code=None, 
             FROM {users_schema}.roles
             WHERE libelle = '{role}';
             """
-#            id_role = await conn.fetchval(get_id_role_query)
 
             # Requête d'ajout d'un compte utilisateur
             insert_account_query = f"""

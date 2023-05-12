@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     id_user SERIAL PRIMARY KEY,
     nom VARCHAR(25) NOT NULL,
     prenom VARCHAR(25) NOT NULL,
-    email VARCHAR(64) NOT NULL UNIQUE,
+    email VARCHAR(64) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     verification_code INTEGER,
     first_login BOOLEAN DEFAULT TRUE,
