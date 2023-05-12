@@ -10,8 +10,8 @@
                 "completed": false
             },
             {
-                "name": "create_super_admin_account",
-                "url": "/back-office/create-super-admin-account",
+                "name": "create_superadmin_account",
+                "url": "/back-office/create-superadmin-account",
                 "need_authentication": false,
                 "completed": false
             },

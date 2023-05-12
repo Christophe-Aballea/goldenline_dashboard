@@ -495,7 +495,7 @@ def transfer_and_anonymize_data():
     close_connection(conn, cursor)
 
 
-# Enregistrement du compte super-admin dans le schéma 'users'
+# Enregistrement du compte superadmin dans le schéma 'users'
 def create_super_user_admin():
     db_name = get_db_name()
     users_schema = get_users_schema()
@@ -503,7 +503,7 @@ def create_super_user_admin():
     try:
         conn, cursor = connect_to_db(db_name)
         cursor.execute(f"SET search_path TO {users_schema};")
-        sql_file_path = os.path.join(base_dir, "static", "sql", "create_super_admin_user.sql")
+        sql_file_path = os.path.join(base_dir, "static", "sql", "create_superadmin_user.sql")
         with open(sql_file_path, "r") as sql_file:
             sql_commands = sql_file.read()
         cursor.execute(sql_commands)
@@ -535,7 +535,7 @@ async def get_total_rows(db_name, host, port, user, password, marketing_schema, 
 
 ##########################################################################
 #  TRANSFERT SCHEMA SOURCE -> ANONYMISATION CLIENTS -> SCHEMA MARKETING  #
-#  ENREGISTREMENT COMPTE SUPER-ADMIN SCHEMA USERS                        #
+#  ENREGISTREMENT COMPTE superadmin SCHEMA USERS                        #
 ##########################################################################
 async def generate_data(task_id, customer_number, collections_number, start_date, update_status_callback: Callable[[str, str], None]):
     update_status_callback(task_id, "running")
@@ -558,9 +558,9 @@ async def generate_data(task_id, customer_number, collections_number, start_date
         transfer_and_anonymize_data()
         print("Données clients anonymisées et transfert effectué")
 
-        # Enregistrement du compte super-admin et suppression des traces
+        # Enregistrement du compte superadmin et suppression des traces
         create_super_user_admin()
-        print("Compte super-admin créé avec succès")
+        print("Compte superadmin créé avec succès")
 
         # Vérification du transfert
         total_expected = customer_number + collections_number + 1

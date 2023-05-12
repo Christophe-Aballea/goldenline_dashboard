@@ -5,6 +5,7 @@
   <h3>Vérification des comptes</h3>
   <p class="lead">La mise production du projet est effective à compter du moment où au minimum un aministrateur back-office et un utilisateur du service Marketing sont créés.</p>
   {% if error %}
+    <!--
     <div class="alert alert-danger" role="alert">
         {% for message in error %}
             {% if loop.first %}
@@ -19,6 +20,7 @@
         {% endfor %}
         </ul>       
     </div>
+    -->
   {% endif %}
   <table>
     <thead>
@@ -39,17 +41,29 @@
       {% endfor %}
     </tbody>
   </table>
+  {% if can_be_put_into_production %}
+    <button type="submit" name="submit_button" value="production" class="btn btn-primary">Mettre en production</button>
+  {% endif %}
   
   <div class="row justify-content-center">
     <div class="col-md-20">
         <div class="card">
         <div class="card-header"><h4>Création d'un utilisateur</h4></div>
         <div class="card-body">
-            {% if creation_user_success %}
-            <div class="alert alert-danger" role="alert">
-                {{ message }}
-            </div>
-            {% endif %} 
+            {% if creation_success %}
+                {% for message in creation_message %}
+                <div class="alert alert-success">
+                    <p>{{ message }}</p>
+                </div>
+                {% endfor %}
+            {% endif %}
+            {% if error %}
+                {% for message in error %}
+                <div class="alert alert-danger" role="alert">
+                    <p>{{ message }}</p>
+                </div>
+                {% endfor %}
+            {% endif %}
         <form action="/back-office/list-of-existing-accounts" method="post">
             <div class="form-group">
                 <label for="name">Nom</label>
@@ -66,8 +80,8 @@
             <div class="form-group">
                 <label for="role">Rôle</label><br>
                 <div style="display: inline-block; margin-right: 10px;">
-                    <input type="radio" id="super_admin" name="role" value="super_admin" required>
-                    <label for="super_admin">Super-admin</label><br>
+                    <input type="radio" id="superadmin" name="role" value="superadmin" required>
+                    <label for="superadmin">Superadmin</label><br>
                 </div>
                 <div style="display: inline-block; margin-right: 10px;">
                     <input type="radio" id="admin" name="role" value="admin" required>
@@ -83,19 +97,7 @@
                 <input type="text" class="form-control" id="verification_code" name="verification_code" value="{{ verification_code }}" required>
             </div>
             <button type="submit" name="submit_button" value="create" class="btn btn-primary">Créer</button>
-            {% if is_in_production %}
-                <button type="submit" name="submit_button" value="production" class="btn btn-primary">Mettre en production</button>
-            {% endif %}
         </form>
-        <!-- Existing code 
-        <div class="actions"></div>
-            <form action="/back-office/list-of-existing-accounts" method="post">
-                <div class="form-group">
-                <div class="form-group action-buttons">
-                    <button type="submit" class="btn btn-primary">Suivant ></button>
-                </div>
-            </form>   
-        </div>-->
         </div>
         </div>
     </div>
