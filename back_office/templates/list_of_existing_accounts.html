@@ -9,21 +9,29 @@
         {% if can_be_put_into_production %}
             <a href="/back-office/dasboard" class="btn btn-primary" role="button">Mettre en production</a>
         {% endif %}
+        {% if existing_accounts_error %} 
+            {% for message in existing_accounts_error %}
+            <div class="alert alert-danger" role="alert">
+                <strong>{{ message }}</strong>
+            </div>
+            {% endfor %}
+        {% else %}
         <div class="card mb-4">
             <div class="card-header"><h4>Comptes existants</h4></div>
             <div class="card-body">
-            <div class="row">
-                {% for role in ['superadmin', 'admin', 'user'] %}
-                <div class="col-12 col-md-4">
-                    <h5 class="card-title text-center">{{ role }}</h5>
-                    {% for account in accounts[role] %}
-                        <p class="card-text">{{ account }}</p>
+                <div class="row">
+                    {% for role in ['superadmin', 'admin', 'user'] %}
+                    <div class="col-12 col-md-4">
+                        <h5 class="card-title text-center">{{ role }}</h5>
+                        {% for account in accounts[role] %}
+                            <p class="card-text">{{ account }}</p>
+                        {% endfor %}
+                    </div>
                     {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
             </div>
         </div>
+        {% endif %}
         {% if not can_be_put_into_production %}
         <div class="row justify-content-center">
             <div class="col-md-12">
@@ -33,44 +41,50 @@
                         {% if creation_success %}
                             {% for message in creation_success %}
                             <div class="alert alert-success" role="alert">
-                                <strong>{{ message }}</strong>
+                                {{ message }}
                             </div>
                             {% endfor %}
                         {% endif %}
-                        {% if error %}
-                            {% for message in error %}
+                        {% if user_creation_error %}
+                            {% for message in user_creation_error %}
                             <div class="alert alert-danger" role="alert">
-                                <p>{{ message }}</p>
+                                {{ message }}
                             </div>
                             {% endfor %}
                         {% endif %}
                         <form action="/back-office/list-of-existing-accounts" method="post">
                             <div class="form-group">
                                 <label for="name">Nom</label>
-                                <input type="text" class="form-control" id="name" name="name" autofocus required>
+                                <input type="text" class="form-control" id="name" name="name" value="{{ form_data.name if form_data.name else '' }}" autofocus required>
                             </div>
                             <div class="form-group">
                                 <label for="surname">Prénom</label>
-                                <input type="text" class="form-control" id="surname" name="surname" required>
+                                <input type="text" class="form-control" id="surname" name="surname" value="{{ form_data.surname if form_data.email else '' }}" required>
                             </div>
                             <div class="form-group">
                                 <label for="email">Adresse mail</label>
-                                <input type="email" class="form-control" id="email" name="email" required>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ form_data.email if form_data.email else '' }}" required>
                             </div>
                             <div class="form-group">
                                 <label for="role">Rôle</label><br>
                                 <div style="display: inline-block; margin-right: 10px;">
-                                    <input type="radio" id="superadmin" name="role" value="superadmin" required>
+                                    <input type="radio" id="superadmin" name="role" value="superadmin" required {{ 'checked' if form_data.role == 'superadmin' else '' }}>
                                     <label for="superadmin">Superadmin</label><br>
                                 </div>
                                 <div style="display: inline-block; margin-right: 10px;">
-                                    <input type="radio" id="admin" name="role" value="admin" required>
+                                    <input type="radio" id="admin" name="role" value="admin" required {{ 'checked' if form_data.role == 'admin' else '' }}>
                                     <label for="admin">Admin</label><br>
                                 </div>
+                                {% if user_creation_error %}
                                 <div style="display: inline-block;">
-                                    <input type="radio" id="user" name="role" value="user" required>
+                                    <input type="radio" id="user" name="role" value="user" {{ 'checked' if form_data.role == 'user' else '' }} required>
                                     <label for="user">User</label>
                                 </div>
+                                {% else %}
+                                <div style="display: inline-block;">
+                                    <input type="radio" id="user" name="role" value="user" checked required>
+                                    <label for="user">User</label>
+                                {% endif %}
                             </div>
                             <div class="form-group">
                                 <label for="verification_code">Code de vérification</label>
