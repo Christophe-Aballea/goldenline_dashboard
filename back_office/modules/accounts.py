@@ -35,36 +35,16 @@ async def list_of_existing_accounts():
 
         return True, existing_accounts
     except Exception as error:
-        return False, [f"Erreur : ", str(error)]
+        return False, [f"Erreur lors de la tentative de récupération des comptes existants : {str(error)}"]
     finally:
         if conn:
             await conn.close()
 
-async def verify_numbers_of_accounts():
-    users_schema = get_users_schema()
-    conn = None
-    try:
-        conn = await create_connection()
 
-        # Nombres de comptes pour chaque rôle
-        get_numbers_of_accounts_query = f"""
-        SELECT  (SELECT COUNT(*) FROM {users_schema}.users u LEFT JOIN {users_schema}.roles r ON u.id_role = r.id_role WHERE r.libelle = 'superadmin') AS superadmin,
-                (SELECT COUNT(*) FROM {users_schema}.users u LEFT JOIN {users_schema}.roles r ON u.id_role = r.id_role WHERE r.libelle = 'admin') AS admin,
-                (SELECT COUNT(*) FROM {users_schema}.users u LEFT JOIN {users_schema}.roles r ON u.id_role = r.id_role WHERE r.libelle = 'user') AS user;
-        """
-        account_numbers = await conn.fetchrow(get_numbers_of_accounts_query)
-
-        # Succès si au moins 1 compte admin / superadmin et au moin un compte user
-        success = (account_numbers["superadmin"] + account_numbers["admin"]) > 0 and account_numbers["user"] > 0
-
-        _, accounts = await list_of_existing_accounts()
-
-        return success, accounts
-    except Exception as error:
-        return False, [f"Erreur : ", str(error)]
-    finally:
-        if conn:
-            await conn.close()
+def can_be_put_into_production(accounts):
+    admin_accounts = len(accounts.get("superadmin", [])) + len(accounts.get("admin", []))
+    user_accounts = len(accounts.get("user", []))
+    return admin_accounts > 0 and user_accounts > 0
 
 
 def create_superadmin_account(prenom, nom, email, password):
@@ -143,9 +123,9 @@ async def create_user_account(prenom, nom, email, role, verification_code=None, 
 
             try:    
                 await conn.fetchval(insert_account_query, prenom, nom, email, password_hash, int(verification_code), role, first_login)
-                message.append(f"Compte {email} / {verification_code} créé avec succès")
+                message.append(f"{role.capitalize()} {email} ({verification_code}) créé avec succès")
             except Exception as error:
-                message.append(f"Erreur à la création du compte : {str(error)}")
+                message.append(f"Erreur lors de la création du compte : {str(error)}")
                 success = False
             return success, message
         else:
