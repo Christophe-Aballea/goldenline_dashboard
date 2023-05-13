@@ -154,9 +154,9 @@ async def process_generate_data(request: Request, customers_number: str = Form(.
     return {"task_id": task_id}
 
 
-# back-office/list-of-existing-accounts/
-@router.get("/list-of-existing-accounts", response_class=HTMLResponse)
-async def list_of_existing_accounts_form(request: Request, token: str = Depends(get_token_from_cookie)):
+# back-office/move-to-production/
+@router.get("/move-to-production", response_class=HTMLResponse)
+async def move_to_production_form(request: Request, token: str = Depends(get_token_from_cookie)):
     current_user = get_current_user(token)
     if current_user.id_role != 1 :  # Accès autorisé uniquement au superdamin
         raise HTTPException(status_code=403, detail="Forbidden")
@@ -171,13 +171,13 @@ async def list_of_existing_accounts_form(request: Request, token: str = Depends(
             production_success = False
         verification_code = get_verification_code()
 
-    return templates.TemplateResponse("list_of_existing_accounts.html",
+    return templates.TemplateResponse("move_to_production.html",
                                       {"request": request, key: accounts, "verification_code": verification_code,
                                        "can_be_put_into_production": production_success, "form_data": {}})
 
 
-@router.post("/list-of-existing-accounts")
-async def process_list_of_existing_accounts(request: Request, name: str = Form(...), surname: str = Form(...), email: str = Form(...),
+@router.post("/move-to-production")
+async def process_move_to_production(request: Request, name: str = Form(...), surname: str = Form(...), email: str = Form(...),
                                       role: str = Form(...), verification_code: str = Form(...)):
     # Récupération du contenu des champs, à retransmettre
     form_data = await request.form()
@@ -202,7 +202,7 @@ async def process_list_of_existing_accounts(request: Request, name: str = Form(.
     # Génération d'un nouveau code de vérification
     verification_code = get_verification_code()
 
-    return templates.TemplateResponse("list_of_existing_accounts.html",
+    return templates.TemplateResponse("move_to_production.html",
                                       {"request": request, key_user: creation_message, "form_data": form_data, key_accounts: accounts,
                                       "verification_code": verification_code, "can_be_put_into_production": production_success})
 

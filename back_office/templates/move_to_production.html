@@ -52,7 +52,7 @@
                             </div>
                             {% endfor %}
                         {% endif %}
-                        <form action="/back-office/list-of-existing-accounts" method="post">
+                        <form action="/back-office/move-to-production" method="post">
                             <div class="form-group">
                                 <label for="name">Nom</label>
                                 <input type="text" class="form-control" id="name" name="name" value="{{ form_data.name if form_data.name else '' }}" autofocus required>

@@ -34,8 +34,8 @@
                 "completed": false
             },
             {
-                "name": "list_of_existing_accounts",
-                "url": "/back-office/list-of-existing-accounts",
+                "name": "move_to_production",
+                "url": "/back-office/move-to-production",
                 "need_authentication": true,
                 "completed": false
             },
