@@ -40,8 +40,8 @@
                 "completed": false
             },
             {
-                "name": "dashboard",
-                "url": "/back-office/dashboard",
+                "name": "users_management",
+                "url": "/back-office/users-management",
                 "need_authentication": true,
                 "completed": false
             }

@@ -58,7 +58,7 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
             response.set_cookie(key="access_token", value=token, httponly=True, max_age=ACCESS_TOKEN_EXPIRE_SECONDS)
             return response
         else:
-            return RedirectResponse(url="/back-office/dashboard", status_code=303)
+            return RedirectResponse(url="/back-office/users-management", status_code=303)
     elif user_found:
         error_message = "Autorisation refusée"
     else:
@@ -206,8 +206,8 @@ async def process_move_to_production(request: Request, name: str = Form(...), su
                                       "verification_code": verification_code, "can_be_put_into_production": production_success})
 
 
-# back-office/dashboard/
-@router.get("/dashboard", response_class=HTMLResponse)
+# back-office/users-management/
+@router.get("/users-management", response_class=HTMLResponse)
 async def filtered_accounts_list(request: Request): #, token: str = Depends(get_token_from_cookie)):
     '''
     current_user = get_current_user(token)
@@ -224,10 +224,10 @@ async def filtered_accounts_list(request: Request): #, token: str = Depends(get_
     key = "accounts" if success else "error"
     for record in value:
         print(record["nom"], record["prenom"], record["email"], record["role"], record["verification_code"])
-    return templates.TemplateResponse("dashboard.html", {"request": request, key:value})
+    return templates.TemplateResponse("users_management.html", {"request": request, key:value})
 
 
-@router.post("/dashboard")
+@router.post("/users-management")
 async def filtered_accounts_list():
 #    current_user = get_current_user(token)
 #    if current_user.id_role not in [1, 2]:  # 1 et 2 sont les identifiants de rôle de superadmin et admin
@@ -239,12 +239,12 @@ async def filtered_accounts_list():
         config.set_stage_completed("move_to_production")
         config.increment_stage()
 
-    return {"message": 'entrée dans route.post("/dashboard")'}        
+    return {"message": 'entrée dans route.post("/users-management")'}        
     
 
 
 '''
-@router.post("/dashboard")
+@router.post("/users-management")
 async def process_list_of_existing_accounts(request: Request, name: str = Form(...), surname: str = Form(...), email: str = Form(...),
                                       role: str = Form(...), verification_code: str = Form(...), submit_button: str = Form(...)):
     if submit_button == "create":
