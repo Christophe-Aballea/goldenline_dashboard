@@ -58,7 +58,9 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
             response.set_cookie(key="access_token", value=token, httponly=True, max_age=ACCESS_TOKEN_EXPIRE_SECONDS)
             return response
         else:
-            return RedirectResponse(url="/back-office/users-management", status_code=303)
+            response = RedirectResponse(url="/back-office/users-management", status_code=303)
+            response.set_cookie(key="access_token", value=token, httponly=True, max_age=ACCESS_TOKEN_EXPIRE_SECONDS)
+            return response
     elif user_found:
         error_message = "Autorisation refusée"
     else:
@@ -208,23 +210,17 @@ async def process_move_to_production(request: Request, name: str = Form(...), su
 
 # back-office/users-management/
 @router.get("/users-management", response_class=HTMLResponse)
-async def filtered_accounts_list(request: Request): #, token: str = Depends(get_token_from_cookie)):
-    '''
+async def filtered_accounts_list(request: Request, token: str = Depends(get_token_from_cookie)):
     current_user = get_current_user(token)
     if current_user.id_role not in [1, 2]:  # 1 et 2 sont les identifiants de rôle de superadmin et admin
         raise HTTPException(status_code=403, detail="Forbidden")
-    elif not is_in_production():
-        # Mise à jour du statut de l'étape (terminée) et l'état d'avancement
-        config.update_config("production", True)
-        config.set_stage_completed("move_to_production")
-        config.increment_stage()
-    '''
-    # Récupération des comptes de niveau(x) inférieur(s)
-    success, value = await get_users_by_roles(1) #current_user.id_role)
-    key = "accounts" if success else "error"
-    for record in value:
-        print(record["nom"], record["prenom"], record["email"], record["role"], record["verification_code"])
-    return templates.TemplateResponse("users_management.html", {"request": request, key:value})
+    else:
+        # Récupération des comptes de niveau(x) inférieur(s)
+        success, value = await get_users_by_roles(1) #current_user.id_role)
+        key = "accounts" if success else "error"
+        for record in value:
+            print(record["nom"], record["prenom"], record["email"], record["role"], record["verification_code"])
+        return templates.TemplateResponse("users_management.html", {"request": request, key:value})
 
 
 @router.post("/users-management")
