@@ -138,3 +138,29 @@ async def create_user_account(prenom, nom, email, role, verification_code=None, 
     finally:
         if conn:
             await conn.close()
+
+# Lister les comptes de niveau(x) inférieur(s)
+async def get_users_by_roles(current_user_id_role):
+    users_schema = get_users_schema()
+    message = []
+    conn = None
+    try:
+        get_users_accounts_query = f"""
+        SELECT nom, prenom, email, libelle as role, verification_code
+        FROM {users_schema}.users u
+        LEFT JOIN {users_schema}.roles r
+        ON u.id_role = r.id_role
+        WHERE u.id_role > {current_user_id_role}
+        ORDER BY nom, prenom;
+        """
+        conn = await create_connection()
+        message = await conn.fetch(get_users_accounts_query)
+        success = True
+    except Exception as error:
+        message.append((f"Immpossible de récupérer la liste des comptes : {str(error)}"))
+        success = False
+    finally:
+        if conn:
+            await conn.close()
+       
+    return success, message
