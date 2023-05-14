@@ -9,7 +9,7 @@ import config
 from config import is_in_production, config_completed_stage
 
 from back_office.modules.prerequisites import check_prerequisites
-from back_office.modules.accounts import list_of_existing_accounts, can_be_put_into_production, create_superadmin_account, create_user_account
+from back_office.modules.accounts import list_of_existing_accounts, can_be_put_into_production, create_superadmin_account, create_user_account, get_users_by_roles
 from back_office.modules.data import create_database, generate_data
 from back_office.modules.authentication import get_token_from_cookie, get_current_user, verify_credentials, get_verification_code
 
@@ -51,7 +51,6 @@ def login(request: Request):
 @router.post("/login")
 async def login(request: Request, email: str = Form(...), password: str = Form(...)):
     credentials = HTTPBasicCredentials(username=email, password=password)
-    
     user_found, token = await verify_credentials(credentials)
     if user_found and token:
         if not is_in_production():
@@ -59,7 +58,7 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
             response.set_cookie(key="access_token", value=token, httponly=True, max_age=ACCESS_TOKEN_EXPIRE_SECONDS)
             return response
         else:
-            return {"message": "utilisateur reconnu, aller à l'accueil Back-office"}
+            return RedirectResponse(url="/back-office/dashboard", status_code=303)
     elif user_found:
         error_message = "Autorisation refusée"
     else:
@@ -209,19 +208,40 @@ async def process_move_to_production(request: Request, name: str = Form(...), su
 
 # back-office/dashboard/
 @router.get("/dashboard", response_class=HTMLResponse)
-async def list_of_existing_accounts_form(request: Request, token: str = Depends(get_token_from_cookie)):
+async def filtered_accounts_list(request: Request): #, token: str = Depends(get_token_from_cookie)):
+    '''
     current_user = get_current_user(token)
     if current_user.id_role not in [1, 2]:  # 1 et 2 sont les identifiants de rôle de superadmin et admin
         raise HTTPException(status_code=403, detail="Forbidden")
-    else:
-        success, message = await list_of_existing_accounts()
-        verification_code = get_verification_code()
-        #is_in_production = is_in_production()
-        msg = "accounts" if success else "error"
-    return templates.TemplateResponse("list_of_existing_accounts.html",
-                                      {"request": request, msg: message,
-                                       "verification_code": verification_code,
-                                       "is_in_production": is_in_production()})
+    elif not is_in_production():
+        # Mise à jour du statut de l'étape (terminée) et l'état d'avancement
+        config.update_config("production", True)
+        config.set_stage_completed("move_to_production")
+        config.increment_stage()
+    '''
+    # Récupération des comptes de niveau(x) inférieur(s)
+    success, value = await get_users_by_roles(1) #current_user.id_role)
+    key = "accounts" if success else "error"
+    for record in value:
+        print(record["nom"], record["prenom"], record["email"], record["role"], record["verification_code"])
+    return templates.TemplateResponse("dashboard.html", {"request": request, key:value})
+
+
+@router.post("/dashboard")
+async def filtered_accounts_list():
+#    current_user = get_current_user(token)
+#    if current_user.id_role not in [1, 2]:  # 1 et 2 sont les identifiants de rôle de superadmin et admin
+#        raise HTTPException(status_code=403, detail="Forbidden")
+#    else:
+    if not is_in_production():
+        # Mise à jour du statut de l'étape (terminée) et l'état d'avancement
+        config.update_config("production", True)
+        config.set_stage_completed("move_to_production")
+        config.increment_stage()
+
+    return {"message": 'entrée dans route.post("/dashboard")'}        
+    
+
 
 '''
 @router.post("/dashboard")

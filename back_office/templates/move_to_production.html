@@ -7,12 +7,12 @@
         <h3>Création et vérification des comptes</h3>
         <p class="lead">La mise production du projet est possible à compter du moment où au minimum un utilisateur du service Marketing et un administrateur (ou superadministrateur) back-office sont créés.</p>
         {% if can_be_put_into_production %}
-            <a href="/back-office/dasboard" class="btn btn-primary" role="button">Mettre en production</a>
+            <a href="/back-office/dashboard" class="btn btn-primary" role="button">Mettre en production</a>
         {% endif %}
         {% if existing_accounts_error %} 
             {% for message in existing_accounts_error %}
             <div class="alert alert-danger" role="alert">
-                <strong>{{ message }}</strong>
+                {{ message }}
             </div>
             {% endfor %}
         {% else %}

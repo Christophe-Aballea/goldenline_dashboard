@@ -40,8 +40,8 @@
                 "completed": false
             },
             {
-                "name": "create_user_account",
-                "url": "/back-office/create-user-account",
+                "name": "dashboard",
+                "url": "/back-office/dashboard",
                 "need_authentication": true,
                 "completed": false
             }

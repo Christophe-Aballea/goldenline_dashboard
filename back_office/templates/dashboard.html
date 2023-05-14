@@ -1,0 +1,38 @@
+{% extends "base_in_production.html" %}
+
+{% block title %}
+Liste des comptes
+{% endblock %}
+
+{% block content %}
+<div class="my-3">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Nom</th>
+        <th scope="col">Prénom</th>
+        <th scope="col">Email</th>
+        <th scope="col">Rôle</th>
+        <th scope="col">Code</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in accounts %}
+      <tr>
+        <td>{{ user["nom"] }}</td>
+        <td>{{ user["prenom"] }}</td>
+        <td>{{ user["email"] }}</td>
+        <td>{{ user["role"] }}</td>
+        <td>{{ user["verification_code"] }}</td>
+        <td>
+          <a href="/back-office/detail/{{ user.id }}" class="btn btn-primary">Détail</a>
+          <a href="/back-office/edit/{{ user.id }}" class="btn btn-warning">Modifier</a>
+          <a href="/back-office/delete/{{ user.id }}" class="btn btn-danger">Supprimer</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
