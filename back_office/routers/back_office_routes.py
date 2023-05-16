@@ -9,9 +9,9 @@ import config
 from config import is_in_production, config_completed_stage
 
 from back_office.modules.prerequisites import check_prerequisites
-from back_office.modules.accounts import list_of_existing_accounts, can_be_put_into_production, create_superadmin_account, create_user_account, get_users_by_roles
+from back_office.modules.accounts import list_of_existing_accounts, can_be_put_into_production, create_superadmin_account, create_user_account, get_users_by_roles, get_login_type_from_email, activate_user
 from back_office.modules.data import create_database, generate_data
-from back_office.modules.authentication import get_token_from_cookie, get_current_user, verify_credentials, get_verification_code
+from back_office.modules.authentication import get_token_from_cookie, get_current_user, verify_credentials, get_verification_code, verify_activation_code
 
 router       = APIRouter()
 templates    = Jinja2Templates(directory="back_office/templates")
@@ -50,18 +50,60 @@ def login(request: Request):
 
 @router.post("/login")
 async def login(request: Request, email: str = Form(...), password: str = Form(...)):
-    credentials = HTTPBasicCredentials(username=email, password=password)
-    user_found, token = await verify_credentials(credentials)
-    if user_found and token:
-        url = "/back-office/users-management" if is_in_production() else "/back-office/redirect-to-next-stage"
-        response = RedirectResponse(url=url, status_code=303)
-        response.set_cookie(key="access_token", value=token, httponly=True, max_age=ACCESS_TOKEN_EXPIRE_SECONDS)
-        return response
-    elif user_found:
-        error_message = "Autorisation refusée"
+    email_found, first_login = await get_login_type_from_email(email)
+    if email_found == False:
+        error_message = first_login
+        return templates.TemplateResponse("login.html", {"request": request, "error": error_message, "email": email})
+    elif first_login:
+        is_activation_code_correct, message = await verify_activation_code(email, password)
+        if is_activation_code_correct:
+            url = "first_login.html"
+            key = "success_message"
+        else:
+            url = "login.thml"
+            key = "error"
+        return templates.TemplateResponse(url, {"request": request, key: message, "email": email})
     else:
-        error_message = "Identifiant ou mot de passe incorrect"
-    return templates.TemplateResponse("login.html", {"request": request, "error": error_message})
+        # email trouvé, 'first_login' == False
+        credentials = HTTPBasicCredentials(username=email, password=password)
+        success, message = await verify_credentials(credentials)
+        if success == False:
+            error_message = message
+            return templates.TemplateResponse("login.html", {"request": request, "error": error_message, "email": email})
+        else:
+            token = message
+            url = "/back-office/users-management" if is_in_production() else "/back-office/redirect-to-next-stage"
+            response = RedirectResponse(url=url, status_code=303)
+            response.set_cookie(key="access_token", value=token, httponly=True, max_age=ACCESS_TOKEN_EXPIRE_SECONDS)
+            return response
+
+
+# back-office/first-login/
+@router.get("/first-login", response_class=HTMLResponse)
+def login(request: Request):
+    return templates.TemplateResponse("first_login.html", {"request": request})
+
+@router.post("/first-login")
+async def first_login_form(request: Request, email: str = Form(...), password: str = Form(...), password_check: str = Form(...)):
+    if password != password_check :
+        error_message = ["Veuillez saisir deux fois le même mot de passe"]
+        return templates.TemplateResponse("first_login.html", {"request": request, "error": error_message})
+    else:
+        success, message = await activate_user(email, password)
+        if success == False:
+            return templates.TemplateResponse("login.html", {"request": request, "error": message, "email": email})
+        else:
+            credentials = HTTPBasicCredentials(username=email, password=password)
+            success, message = await verify_credentials(credentials)
+            if success == False:
+                error_message = message
+                return templates.TemplateResponse("login.html", {"request": request, "error": error_message, "email": email})
+            else:
+                token = message
+                url = "/back-office/users-management" if is_in_production() else "/back-office/redirect-to-next-stage"
+                response = RedirectResponse(url=url, status_code=303)
+                response.set_cookie(key="access_token", value=token, httponly=True, max_age=ACCESS_TOKEN_EXPIRE_SECONDS)
+                return response
 
 
 ##########################################
@@ -239,34 +281,6 @@ async def filtered_accounts_list():
 
     return {"message": 'entrée dans route.post("/users-management")'}        
     
-
-
-'''
-@router.post("/users-management")
-async def process_list_of_existing_accounts(request: Request, name: str = Form(...), surname: str = Form(...), email: str = Form(...),
-                                      role: str = Form(...), verification_code: str = Form(...), submit_button: str = Form(...)):
-    if submit_button == "create":
-        creation_user_success, creation_message = await create_user_account(prenom=surname, nom=name, email=email, role=role,
-                                                                            verification_code=verification_code)
-        # print(f"/list-of-existing-accounts creation_user_success : {creation_user_success} / creation_message : {creation_message}")
-        production_success, accounts = await verify_numbers_of_accounts()
-        verification_code = get_verification_code()
-        result = "creation_success" if creation_user_success else "error"
-        print(f"/list-of-existing-accounts result : {result} / creation_message : {creation_message}")    
-        print({"request": request, result: creation_message, "accounts": accounts,
-                                           "verification_code": verification_code, "can_be_put_into_production": production_success})     
-        return templates.TemplateResponse("list_of_existing_accounts.html",
-                                          {"request": request, result: creation_message, "accounts": accounts,
-                                           "verification_code": verification_code, "can_be_put_into_production": production_success})
-    elif submit_button == "production":
-        # Mise en production
-        config.update_config("production", True)
-        config.increment_stage()
-        return RedirectResponse(url="/back-office/redirect-to-next-stage", status_code=303)        
-    else:
-        message = ["Erreur", "Impossible de continuer"] + message + ["lien"]
-        return templates.TemplateResponse("list_of_existing_accounts.html", {"request": request, "error": message})
-'''
 
 # Route de gestion des tâches
 @router.get("/generate-data-status/{task_id}")
