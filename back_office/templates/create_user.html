@@ -1,22 +1,75 @@
-<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-  <link href="{{ url_for('static', filename='css/create_user.css') }}" rel="stylesheet">
-  <title>Page d'erreur</title>
-</head>
-<body>
-  <div class="container text-center">
-    <img src="{{ url_for('static', filename='img/logo_bo.png')}}" alt="Logo back-end" class="logo mb-4">
-    <h1>Erreur <span id="status_code">404 - Not Found</span></h1>
-    <p class="lead">Oops ! Il n'y a rien à voir par ici...</p>
-    <a href="{{ url_for('index') }}" class="btn btn-primary">Revenir en lieu sûr</a>
-  </div>
+{% extends "base_in_production.html" %}
 
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
-</html>
+{% block title %}
+Création d'un compte
+{% endblock %}
+
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+          <div class="row justify-content-center">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header"><h4>Création d'un utilisateur</h4></div>
+                    <div class="card-body">
+                        {% if creation_success %}
+                            {% for message in creation_success %}
+                            <div class="alert alert-success" role="alert">
+                                {{ message }}
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                        {% if user_creation_error %}
+                            {% for message in user_creation_error %}
+                            <div class="alert alert-danger" role="alert">
+                                {{ message }}
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                        <form action="/back-office/create-user" method="post">
+                            <div class="form-group">
+                                <label for="name">Nom</label>
+                                <input type="text" class="form-control" id="name" name="name" value="{{ form_data.name if form_data.name else '' }}" autofocus required>
+                            </div>
+                            <div class="form-group">
+                                <label for="surname">Prénom</label>
+                                <input type="text" class="form-control" id="surname" name="surname" value="{{ form_data.surname if form_data.email else '' }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Adresse mail</label>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ form_data.email if form_data.email else '' }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="role">Rôle</label><br>
+                                <div style="display: inline-block; margin-right: 10px;">
+                                    <input type="radio" id="superadmin" name="role" value="superadmin" required {{ 'checked' if form_data.role == 'superadmin' else '' }}>
+                                    <label for="superadmin">Superadmin</label><br>
+                                </div>
+                                <div style="display: inline-block; margin-right: 10px;">
+                                    <input type="radio" id="admin" name="role" value="admin" required {{ 'checked' if form_data.role == 'admin' else '' }}>
+                                    <label for="admin">Admin</label><br>
+                                </div>
+                                {% if user_creation_error %}
+                                <div style="display: inline-block;">
+                                    <input type="radio" id="user" name="role" value="user" {{ 'checked' if form_data.role == 'user' else '' }} required>
+                                    <label for="user">User</label>
+                                </div>
+                                {% else %}
+                                <div style="display: inline-block;">
+                                    <input type="radio" id="user" name="role" value="user" checked required>
+                                    <label for="user">User</label>
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label for="verification_code">Code de vérification</label>
+                                <input type="text" class="form-control" id="verification_code" name="verification_code" value="{{ verification_code }}" required>
+                            </div>
+                            <button type="submit" name="submit_button" value="create" class="btn btn-primary">Créer</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>  
+{% endblock %}
