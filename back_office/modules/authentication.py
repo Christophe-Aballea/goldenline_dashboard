@@ -84,7 +84,6 @@ async def verify_credentials(credentials: HTTPBasicCredentials):
 
 async def verify_activation_code(email, activation_code):
     users_schema = get_users_schema()
-    success = False
     conn = await create_connection()
     get_activation_code_query = f"""
     SELECT verification_code
@@ -129,3 +128,19 @@ def get_verification_code():
             verification_code.append(digit)
 
     return int(''.join(verification_code))
+
+
+async def get_user_initials(id_user):
+    users_schema = get_users_schema()
+    conn = await create_connection()
+    
+    get_user_initials_query = f"""
+    SELECT UPPER(CONCAT(SUBSTRING(prenom FROM 1 FOR 1), SUBSTRING(nom FROM 1 FOR 1))) AS initials
+    FROM {users_schema}.users
+    WHERE id_user = $1;
+    """
+
+    user_initials = await conn.fetchval(get_user_initials_query, id_user)
+    await conn.close()
+
+    return user_initials

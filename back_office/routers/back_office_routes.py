@@ -11,7 +11,7 @@ from config import is_in_production, config_completed_stage
 from back_office.modules.prerequisites import check_prerequisites
 from back_office.modules.accounts import list_of_existing_accounts, can_be_put_into_production, create_superadmin_account, create_user_account, get_users_by_roles, get_login_type_from_email, activate_user
 from back_office.modules.data import create_database, generate_data
-from back_office.modules.authentication import get_token_from_cookie, get_current_user, verify_credentials, get_verification_code, verify_activation_code
+from back_office.modules.authentication import get_token_from_cookie, get_current_user, verify_credentials, get_verification_code, verify_activation_code, get_user_initials
 
 router       = APIRouter()
 templates    = Jinja2Templates(directory="back_office/templates")
@@ -259,12 +259,16 @@ async def filtered_accounts_list(request: Request, token: str = Depends(get_toke
             config.set_stage_completed("move_to_production")
             config.increment_stage()
 
+        # Récupération des intitailes de l'utilisateur connecté
+        user_initials = await get_user_initials(current_user.id_user)
+
         # Récupération des comptes de niveau(x) inférieur(s)
         success, value = await get_users_by_roles(1) #current_user.id_role)
         key = "accounts" if success else "error"
         for record in value:
             print(record["nom"], record["prenom"], record["email"], record["role"], record["verification_code"])
-        return templates.TemplateResponse("users_management.html", {"request": request, key:value})
+
+        return templates.TemplateResponse("users_management.html", {"request": request, key:value, "user_initials": user_initials})
 
 
 @router.post("/users-management")
