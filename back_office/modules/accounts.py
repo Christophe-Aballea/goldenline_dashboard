@@ -105,7 +105,7 @@ async def create_user_account(prenom, nom, email, role, verification_code=None, 
         same_account_type_count = await conn.fetchrow(is_email_used_with_same_role_query, email, role)
         if same_account_type_count["account_count"] > 0:
             success = False
-            message.append(f"Création de plusieurs comptes avec le même identifiant et le même rôle non autorisée.")
+            message.append(f"Création de plusieurs comptes avec le même identifiant non autorisée.")
             return success, message
 
         if is_unused or password == "non défini":
@@ -132,7 +132,6 @@ async def create_user_account(prenom, nom, email, role, verification_code=None, 
             message.append("Impossible de créer un autre compte avec ce mot de passe.")
             return False, message
     except Exception as error:
-        print(f"Erreur : {str(error)}")
         message.append((f"Erreur lors de la création du compte : {str(error)}"))
         return False, message
     finally:
@@ -178,7 +177,7 @@ async def get_login_type_from_email(email):
         """
         conn = await create_connection()
         user = await conn.fetchrow(get_user_infos_query)
-        print(user)
+
         if user is None:
             success = False
             message.append("Identifiant, mot de passe ou code d'activation incorrect")
@@ -211,12 +210,12 @@ async def activate_user(email, password):
         # Requête d'activation de l'utilisateur
         activate_user_update_query = f"""
         UPDATE {users_schema}.users
-        SET (password_hash, verification_code, first_login) = ('{password_hash}', ' ', false)
+        SET (password_hash, verification_code, first_login) = ('{password_hash}', NULL, false)
         WHERE email = '{email}';
         """
         conn = await create_connection()
-        result = await conn.fetchval(activate_user_update_query)
-        print(result)
+        result = await conn.execute(activate_user_update_query)
+
         if result:
             success = True
             message.append(f"Compte {email} activé avec succès")
