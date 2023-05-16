@@ -24,7 +24,7 @@ Liste des comptes
         <td>{{ user["prenom"] }}</td>
         <td>{{ user["email"] }}</td>
         <td>{{ user["role"] }}</td>
-        <td>{{ user["verification_code"] }}</td>
+        <td>{{ user["verification_code"]|default('', true) }}</td>
         <td>
           <a href="/back-office/detail/{{ user.id }}" class="btn btn-primary">Détail</a>
           <a href="/back-office/edit/{{ user.id }}" class="btn btn-warning">Modifier</a>
