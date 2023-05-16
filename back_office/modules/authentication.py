@@ -47,8 +47,7 @@ def decode_access_token(token: str):
 
 async def verify_credentials(credentials: HTTPBasicCredentials):
     users_schema = get_users_schema()
-    print(f"users_schema : {users_schema}")
-
+    success = False
     conn = await create_connection()
     query = f"""
     SELECT id_user, email, password_hash, id_role FROM {users_schema}.users WHERE email = '{credentials.username}';
@@ -57,7 +56,7 @@ async def verify_credentials(credentials: HTTPBasicCredentials):
     await conn.close()
 
     # Parcourir les résultats et vérifier les informations d'identification
-    user_found = False
+    is_password_correct = False
     for result in results:
         id_user = result["id_user"]
         email = result["email"]
@@ -66,16 +65,40 @@ async def verify_credentials(credentials: HTTPBasicCredentials):
         
         # Vérifiez si le mot de passe est correct
         if bcrypt.checkpw(credentials.password.encode("utf-8"), password_hash.encode("utf-8")):
-            user_found = True
+            is_password_correct = True
             break
 
-    if user_found:
+    if is_password_correct:
         if id_role in (1, 2):
             access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
             access_token = create_access_token(data={"id_user": id_user, "email": email, "id_role": id_role},
                                                expires_delta=access_token_expires,)
-            return True, access_token
-    return user_found, None
+            success = True
+            message = access_token
+        else:
+            message = ["Connexion refusée"]
+    else:
+        message = ["Identifiant, mot de passe ou code d'activation incorrect"]
+    return success, message
+
+
+async def verify_activation_code(email, activation_code):
+    users_schema = get_users_schema()
+    success = False
+    conn = await create_connection()
+    get_activation_code_query = f"""
+    SELECT verification_code
+    FROM {users_schema}.users
+    WHERE email = '{email}';
+    """
+    results = await conn.fetchrow(get_activation_code_query)
+    await conn.close()
+
+    # Parcourir les résultats et vérifier les informations d'identification
+    is_activation_code_correct = results["verification_code"] == int(activation_code)
+    message = ["Code d'activation reconnu"] if is_activation_code_correct else ["Code d'activation invalide"]
+    
+    return is_activation_code_correct, message
 
 
 async def get_token_from_cookie(access_token: str = Cookie(None)):
