@@ -7,9 +7,11 @@
     <div class="card-header"><h4>Connexion</h4></div>
     <div class="card-body">
         {% if error %}
+        {% for message in error %}
         <div class="alert alert-danger" role="alert">
-            {{ error }}
+            {{ message }}
         </div>
+        {% endfor %}
         {% endif %}
         <form method="post" action="/back-office/login">
         <div class="form-group">

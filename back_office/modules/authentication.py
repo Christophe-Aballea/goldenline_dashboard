@@ -96,7 +96,11 @@ async def verify_activation_code(email, activation_code):
 
     # Parcourir les résultats et vérifier les informations d'identification
     is_activation_code_correct = results["verification_code"] == int(activation_code)
-    message = ["Code d'activation reconnu"] if is_activation_code_correct else ["Code d'activation invalide"]
+    if is_activation_code_correct:
+        message = ["Première connexion détectée"]
+        message.append("Veulliez créer votre mot de passe")
+    else:
+        message = ["Code d'activation invalide"]
     
     return is_activation_code_correct, message
 
