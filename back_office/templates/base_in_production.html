@@ -17,13 +17,19 @@
             </a>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if active_page == 'users_management' or active_page == 'user_details' else '' }}" href="/back-office/create-user">Créer compte</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if active_page in ['create_user', 'user_details', 'modify_user'] }}" href="/back-office/users-management">Liste des comptes</a>
+                    </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             {{ user_initials }}
                         </a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item" href="/back-office/edit-account/{{ user_id }}">Mon compte</a>
-                            <a class="dropdown-item" href="/logout">Se déconnecter</a>
+                            <a class="dropdown-item" href="/back-office/edit-account/{{ id_user }}">Mon compte</a>
+                            <a class="dropdown-item" href="/back-office/logout">Déconnexion</a>
                         </div>
                     </li>
                 </ul>
