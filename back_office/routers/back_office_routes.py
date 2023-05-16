@@ -268,9 +268,50 @@ async def filtered_accounts_list(request: Request, token: str = Depends(get_toke
         for record in value:
             print(record["nom"], record["prenom"], record["email"], record["role"], record["verification_code"])
 
-        return templates.TemplateResponse("users_management.html", {"request": request, key:value, "user_initials": user_initials})
+        return templates.TemplateResponse("users_management.html",
+                                          {"request": request, key:value, "user_initials": user_initials, "id_user": current_user.id_user,
+                                           "active_page": "users_management"})
 
 
+# back-office/create-user/
+@router.get("/create-user", response_class=HTMLResponse)
+async def create_user_form(request: Request, token: str = Depends(get_token_from_cookie)):
+    current_user = get_current_user(token)
+    if current_user.id_role not in [1, 2]:  # 1 et 2 sont les identifiants de rôle de superadmin et admin
+        raise HTTPException(status_code=403, detail="Forbidden")
+    else:
+        # Récupération des intitiales de l'utilisateur connecté
+        user_initials = await get_user_initials(current_user.id_user)
+        # Récupération d'un code d'activation
+        verification_code = get_verification_code()
+        return templates.TemplateResponse("create_user.html",
+                                          {"request": request, "verification_code": verification_code,
+                                           "user_initials": user_initials, "verification_code": verification_code, "form_data": {},
+                                           "active_page": "create_user"})
+
+@router.post("/create-user")
+async def process_create_user(request: Request, name: str = Form(...), surname: str = Form(...), email: str = Form(...),
+                              role: str = Form(...), verification_code: str = Form(...), token: str = Depends(get_token_from_cookie)):
+    current_user = get_current_user(token)
+    user_initials = await get_user_initials(current_user.id_user)
+    # Récupération du contenu des champs, à retransmettre
+    form_data = await request.form()
+
+    # Tentative de création d'un compte
+    creation_user_success, creation_message = await create_user_account(prenom=surname, nom=name, email=email, role=role,
+                                                                        verification_code=verification_code)
+    if creation_user_success:
+        key_user = "creation_success"
+        form_data = {"name": "", "surname": "", "email": "", "role": ""}
+    else:
+        key_user = "user_creation_error"
+    return templates.TemplateResponse("create_user.html",
+                                      {"request": request, "verification_code": verification_code, key_user: creation_message,
+                                       "user_initials": user_initials, "verification_code": verification_code, "form_data": form_data,
+                                       "active_page": "create_user"})
+
+
+'''
 @router.post("/users-management")
 async def filtered_accounts_list():
 #    current_user = get_current_user(token)
@@ -283,8 +324,16 @@ async def filtered_accounts_list():
         config.set_stage_completed("move_to_production")
         config.increment_stage()
 
-    return {"message": 'entrée dans route.post("/users-management")'}        
-    
+    return {"message": 'entrée dans route.post("/users-management")'}
+''' 
+
+# Déconnexion
+@router.get("/logout", response_class=HTMLResponse)
+async def logout(request: Request):
+    response = RedirectResponse(url="/back-office/login", status_code=303)  # redirige l'utilisateur vers la page d'accueil après la déconnexion
+    response.delete_cookie("access_token")
+    return response
+
 
 # Route de gestion des tâches
 @router.get("/generate-data-status/{task_id}")
