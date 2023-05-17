@@ -45,10 +45,3 @@ class Depense2(BaseModel):
     alimentaire: Optional[float] = None
     textile: Optional[float] = None
     multimedia: Optional[float] = None
-    """
-    class Config:
-        json_encoders = {
-            float: lambda v: 0.0 if v is None else v,
-            Optional[float]: lambda v: 0.0 if v is None else v
-        }
-    """
