@@ -2,9 +2,9 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from api.routers import clients, categories, collectes, achats, csp
+from api.routers import api_routes
 from back_office.routers import back_office_routes
-from marketing_frontend.routers import marketing_routes
+#from marketing_frontend.routers import marketing_routes
 
 app = FastAPI()
 
@@ -20,7 +20,7 @@ templates = Jinja2Templates(directory="back_office/templates")
 
 # Montage des routeurs pour le back-office et le marketing_frontend
 app.include_router(back_office_routes.router, prefix="/back-office", tags=["back-office"])
-#app.include_router(marketing_routes.router, prefix="/marketing", tags=["marketing"])
+app.include_router(api_routes.router, prefix="/api", tags=["api"])
 
 # Montage des dossiers statiques pour le back-office et le marketing_frontend
 app.mount("/back-office/static", StaticFiles(directory="back_office/static"), name="back-office-static")
