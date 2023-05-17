@@ -18,7 +18,7 @@ templates = Jinja2Templates(directory="back_office/templates")
 #app.include_router(achats.router, prefix="/api/achats", tags=["achats"])
 #app.include_router(csp.router, prefix="/api/csp", tags=["csp"])
 
-# Montage des routeurs pour le back-office et le marketing_frontend
+# Montage des routeurs api, back-office et le marketing_frontend
 app.include_router(back_office_routes.router, prefix="/back-office", tags=["back-office"])
 app.include_router(api_routes.router, prefix="/api", tags=["api"])
 
