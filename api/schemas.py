@@ -36,3 +36,19 @@ class Depense(BaseModel):
 
     class Config:
         orm_mode = True
+
+class Depense2(BaseModel):
+    id_client: str
+    date_passage: str
+    montant: float
+    dph: Optional[float] = None
+    alimentaire: Optional[float] = None
+    textile: Optional[float] = None
+    multimedia: Optional[float] = None
+    """
+    class Config:
+        json_encoders = {
+            float: lambda v: 0.0 if v is None else v,
+            Optional[float]: lambda v: 0.0 if v is None else v
+        }
+    """
