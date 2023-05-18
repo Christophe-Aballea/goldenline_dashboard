@@ -9,7 +9,8 @@ from marketing.routers import marketing_routes
 app = FastAPI()
 
 # Configure Jinja2 templates
-templates = Jinja2Templates(directory="back_office/templates")
+#templates = Jinja2Templates(directory="back_office/templates")
+#templates = Jinja2Templates(directory="marketing/templates")
 
 # Montage des routeurs api, back-office et le marketing_frontend
 app.include_router(back_office_routes.router, prefix="/back-office", tags=["back-office"])
@@ -18,7 +19,7 @@ app.include_router(marketing_routes.router, prefix="/marketing", tags=["marketin
 
 # Montage des dossiers statiques pour le back-office et le marketing_frontend
 app.mount("/back-office/static", StaticFiles(directory="back_office/static"), name="back-office-static")
-app.mount("/marketing/static", StaticFiles(directory="marketing_frontend/static"), name="marketing-static")
+app.mount("/marketing/static", StaticFiles(directory="marketing/static"), name="marketing-static")
 
 @app.get("/")
 def read_root():

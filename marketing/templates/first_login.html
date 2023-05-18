@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-md-20">
+    <div class="card">
+    <div class="card-header"><h4>Création du mot de passe</h4></div>
+    <div class="card-body">
+        {% if error %}
+        {% for message in error %}
+        <div class="alert alert-danger" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% if success_message %}
+        {% for message in success_message %}
+        <div class="alert alert-success" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        <form method="post" action="/marketing/first-login">
+            <div class="form-group">
+                <label for="email">Adresse mail :</label>
+                <input type="email" class="form-control" id="email" name="email" value="{{ email }}" readonly>
+            </div>          
+            <div class="form-group">
+                <label for="password">Mot de passe :</label>
+                <input type="password" class="form-control" id="password" name="password" autofocus required>
+            </div>
+            <div class="form-group">
+                <label for="password_check">Veuillez ressaisir votre mot de passe :</label>
+                <input type="password" class="form-control" id="password_check" name="password_check" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Valider et se connecter</button>
+        </form>
+    </div>
+    </div>
+</div>
+</div>
+{% endblock %}

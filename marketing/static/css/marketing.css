@@ -1,0 +1,104 @@
+.logo {
+    max-width: 200px;
+}
+.container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.actions {
+    text-align: left;
+}
+.actions p {
+    margin-bottom: 0;
+}
+.form-group label {
+  margin-bottom: 0.2rem;
+
+}
+.form-group {
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.card {
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+.action-buttons {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.action-buttons .btn {
+  margin-right: 1rem;
+  display: inline-block;
+}
+
+.action-buttons .btn.disabled {
+  background-color: #f8f9fa;
+  border-color: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+.alert p.first {
+  font-weight: bold;
+  color: crimson;
+}
+.alert p.second {
+  margin-bottom: 0;
+  font-weight: bold;
+}
+.alert li.other {
+  /* Style de liste avec puces */
+  text-align: left;
+  list-style-type: disc;
+  margin-left: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.alert li.last {
+  text-align: left;
+  list-style-type: disclosure-closed;
+  margin-left: 0;
+  margin-top: 1rem;
+  margin-bottom: 0;
+  color: darkslateblue;
+}
+.alert p.last a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* list_of_existing_accounts */
+table {
+  border-collapse: collapse;
+  border-radius: 10px;
+  overflow: hidden;
+  padding-bottom: 10px;
+}
+
+th, td {
+  border: 1px solid #000;
+  padding: 10px;
+  text-align: left;
+}
+
+th {
+  text-align: center;
+  background-color: #f2f2f2;
+}
+
+td ul {
+  list-style-type: none; /* Supprime les puces */
+  padding: 0; /* Supprime le padding */
+  margin: 0; /* Supprime la marge */
+}
+
+/*
+td li {
+  padding: 0.5em 0; /* Ajoute de l'espace au-dessus et en dessous de chaque compte 
+}
+*/
