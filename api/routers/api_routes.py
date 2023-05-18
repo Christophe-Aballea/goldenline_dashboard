@@ -143,7 +143,7 @@ async def read_collectes(mode: Optional[str] = "D",
             )
     else:
         category = 'DPH' if category.lower() == 'dph' else category.title()
-        attributes.update({category: (str, ...)})
+        attributes.update({category: (float, ...)})
         column_names.append(category)
         query = query.add_columns(
             func.sum(case((Categorie.libelle == category, Achat.montant), else_=0)).label(category)

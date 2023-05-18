@@ -1,0 +1,46 @@
+{% extends "base_marketing.html" %}
+
+{% block title %}
+    Dashboard
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <h2>Paramètres du graphique</h2>
+        <form action="/marketing/dashboard" method="post">
+            <div class="form-group">
+                <label for="mode">Option</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="mode" id="depense" value="depenses" checked>
+                    <label class="form-check-label" for="option1">Dépenses</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="mode" id="panier" value="panier_moyen">
+                    <label class="form-check-label" for="option2">Panier moyen</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Période</label>
+                <div class="row">
+                    <div class="col">
+                        <input type="date" class="form-control" placeholder="Date de début" name="start_date" id="start_date">
+                    </div>
+                    <div class="col">
+                        <input type="date" class="form-control" placeholder="Date de fin" name="end_date" id="end_date">
+                    </div>
+                </div>
+            </div>
+            <!---->
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Mettre à jour le graphique</button>
+                <button type="button" class="btn btn-secondary">Download</button>
+            </div>
+        </form>
+    </div>
+    <div class="col-md-8">
+        <h2>Graphique</h2>
+        <div id="chartContainer" style="height: 300px; width: 100%;"></div>
+    </div>
+</div>
+{% endblock %}
