@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
-from sqlalchemy import func, case
+from sqlalchemy import func, case, distinct
 from sqlalchemy.orm import Session
 from pydantic import create_model
 import pandas as pd
@@ -15,18 +15,23 @@ router = APIRouter()
 
 
 @router.get("/collecte", response_class=JSONResponse)
-async def read_collectes(start_date: Optional[date] = None,
+async def read_collectes(mode: Optional[str] = "D",
+                         start_date: Optional[date] = None,
                          end_date: Optional[date] = None,
                          level: Optional[str] = None,
                          category: Optional[str] = None,
                          csp: Optional[str] = None,
-                         child_number: Optional[int] = None,
+                         number_of_children: Optional[int] = None,
                          skip: int =0,
                          limit: int =10000,
                          db: Session = Depends(get_db)):
     
     # TODO : vérifier validité des paramètres passés
     are_arguments_valid = True
+    mode = mode.upper()
+    if mode not in ('D', 'P', 'E'):
+        are_arguments_valid = False
+        message = "L'argument 'mode' doit être 'D', 'P' ou 'E'"
     if level and level.upper() not in ('C', 'J', 'M', 'T', 'A'):
         are_arguments_valid = False
         message = "L'argument 'level' doit être 'C', 'J', 'M', 'T' ou 'A'"
@@ -36,11 +41,12 @@ async def read_collectes(start_date: Optional[date] = None,
     if csp and csp.upper() not in ('AE', 'AACD', 'CPIS', 'PI', 'E', 'O', 'R', 'SAP'):
         are_arguments_valid = False
         message = "L'argument 'csp' doit être 'AE', 'AACD', 'CPIS', 'PI', 'E', 'O', 'R' ou 'SAP'"
-    if child_number and child_number < 0:
+    if number_of_children and number_of_children < 0:
         are_arguments_valid = False
-        message = "L'argument 'child_number' doit être >= 0"
+        message = "L'argument 'number_of_children' doit être >= 0"
     if are_arguments_valid == False:
-        return JSONResponse(content=[{"message": message}])
+        raise HTTPException(status_code=400, detail=message)
+
 
     # Construction dynamyque de la requête et du modèle Pydantic
     # SELECT FROM JOIN
@@ -48,59 +54,81 @@ async def read_collectes(start_date: Optional[date] = None,
     level = None if level is None else level.upper()
     if level is None or level == 'C':
         attributes = {'id_collecte': (int, ...)}
-        attributes.update({'date_passage': (str, ...)})
-        column_names = ["id_collecte", "date_passage"]
+        attributes.update({'Date de collecte': (str, ...)})
+        column_names = ["id_collecte", "Date de collecte"]
         query = db.query(Collecte.id_collecte, Collecte.date_passage)
         group_by_elements = [Collecte.id_collecte, Collecte.date_passage]
-        order_by_key = [Collecte.date_passage]
+        order_by_key = [Collecte.id_collecte]
     elif level == 'J':
-        attributes = {'date_passage': (str, ...)}
-        column_names = ["date_passage"]
+        attributes = {'Date de collecte': (str, ...)}
+        column_names = ["Date de collecte"]
         query = db.query(Collecte.date_passage)
         group_by_elements = [Collecte.date_passage]
         order_by_key = [Collecte.date_passage]
     elif level == 'M':
-        attributes = {'mois': (int, ...)}
-        attributes.update({'annee': (int, ...)})
-        column_names = ["mois", "annee"]
+        attributes = {'Mois': (int, ...)}
+        attributes.update({'Année': (int, ...)})
+        column_names = ["Mois", "Année"]
         query = db.query(
-            func.extract('month', Collecte.date_passage).label('mois'),
-            func.extract('year', Collecte.date_passage).label('annee')
+            func.extract('month', Collecte.date_passage).label('Mois'),
+            func.extract('year', Collecte.date_passage).label('Année')
         )
-        group_by_elements = ['mois', 'annee']
-        order_by_key = ['annee', 'mois']
+        group_by_elements = ['Mois', 'Année']
+        order_by_key = ['Année', 'Mois']
     elif level == 'T':
-        attributes = {'trimestre': (int, ...)}
-        attributes.update({'annee': (int, ...)})
-        column_names = ["trimestre", "annee"]
+        attributes = {'Trimestre': (int, ...)}
+        attributes.update({'Année': (int, ...)})
+        column_names = ["Trimestre", "Année"]
         query = db.query(
-            func.extract('quarter', Collecte.date_passage).label('trimestre'),
-            func.extract('year', Collecte.date_passage).label('annee')
+            func.extract('quarter', Collecte.date_passage).label('Trimestre'),
+            func.extract('year', Collecte.date_passage).label('Année')
         )
-        group_by_elements = ['trimestre', 'annee']
-        order_by_key = ['annee', 'trimestre']
+        group_by_elements = ['Trimestre', 'Année']
+        order_by_key = ['Année', 'Trimestre']
     elif level == 'A':
-        column_names = ["annee"]
-        attributes = {'annee': (int, ...)}
-        query = db.query(func.extract('year', Collecte.date_passage).label('annee'))
-        group_by_elements = ['annee']
-        order_by_key = ['annee']
-    
-    # Montant de la collecte
-    attributes.update({"montant": (float, ...)})
-    column_names.append("montant")
-    query = query.add_columns(
-        func.sum(Achat.montant).label('montant')
-        ).join(
-        Achat, Collecte.id_collecte == Achat.id_collecte
-        )
+        column_names = ["Année"]
+        attributes = {'Année': (int, ...)}
+        query = db.query(func.extract('year', Collecte.date_passage).label('Année'))
+        group_by_elements = ['Année']
+        order_by_key = ['Année']
 
+    if mode == 'E':
+        # Nombre de collectes
+        attributes.update({"Nombre de collectes": (int, ...)})
+        column_names.append("Nombre de collectes")
+        query = query.add_columns(func.count(distinct(Collecte.id_collecte)).label('Nombre de collectes'))
+    
+    if mode in ('D', 'E'):
+        # Montant de la collecte (dépense)
+        attributes.update({"Dépense": (float, ...)})
+        column_names.append("Dépense")
+        query = query.add_columns(
+            func.sum(Achat.montant).label('montant')
+            ).join(
+            Achat, Collecte.id_collecte == Achat.id_collecte
+            )
+
+    if mode in ('P', 'E'):
+        # Calcul panier moyen
+        attributes.update({"Panier moyen": (float, ...)})
+        column_names.append("Panier moyen")
+        if mode == 'P':
+            query = query.add_columns(
+                func.round((func.sum(Achat.montant) / func.count(distinct(Collecte.id_collecte))), 2).label('Panier moyen')
+                ).join(
+                Achat, Collecte.id_collecte == Achat.id_collecte
+                )
+        else:
+            query = query.add_columns(
+                func.round((func.sum(Achat.montant) / func.count(distinct(Collecte.id_collecte))), 2).label('Panier moyen')
+                )
+        
     # Categorie
     if category is None:
-        attributes.update({'DPH': (str, ...)})
-        attributes.update({'Alimentaire': (str, ...)})
-        attributes.update({'Textile': (str, ...)})
-        attributes.update({'Multimedia': (str, ...)})
+        attributes.update({'DPH': (float, ...)})
+        attributes.update({'Alimentaire': (float, ...)})
+        attributes.update({'Textile': (float, ...)})
+        attributes.update({'Multimedia': (float, ...)})
         column_names.append("DPH")
         column_names.append("Alimentaire")
         column_names.append("Textile")
@@ -137,10 +165,10 @@ async def read_collectes(start_date: Optional[date] = None,
         group_by_elements.append(CSP.libelle)
 
     # Nb_enfants
-    if child_number is not None:
-        attributes.update({'Nb_enfants': (int, ...)})
-        column_names.append("Nb_enfants")
-        if csp is not None:
+    if number_of_children is not None:
+        attributes.update({"Nombre d'enfants": (int, ...)})
+        column_names.append("Nombre d'enfants")
+        if csp is None:
             query = query.add_columns(
                 Client.nb_enfants
                 ).join(
@@ -159,8 +187,8 @@ async def read_collectes(start_date: Optional[date] = None,
     if csp is not None:
         query = query.filter(CSP.csp == csp.upper())
     
-    if child_number is not None:
-        query = query.filter(Client.nb_enfants == child_number)
+    if number_of_children is not None:
+        query = query.filter(Client.nb_enfants == number_of_children)
 
     if category is not None:
         query = query.filter(Categorie.libelle == category)
@@ -178,7 +206,6 @@ async def read_collectes(start_date: Optional[date] = None,
                     key: value.isoformat() if isinstance(value, date) else value
                     for key, value in dict(zip(column_names, result)).items()
                     }) for result in results]
-    print(collectes)
     
     return JSONResponse([model.dict() for model in collectes])
 
