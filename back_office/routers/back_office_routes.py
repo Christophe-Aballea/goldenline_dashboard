@@ -87,7 +87,7 @@ def login(request: Request):
 async def first_login_form(request: Request, email: str = Form(...), password: str = Form(...), password_check: str = Form(...)):
     if password != password_check :
         error_message = ["Veuillez saisir deux fois le même mot de passe"]
-        return templates.TemplateResponse("first_login.html", {"request": request, "error": error_message})
+        return templates.TemplateResponse("first_login.html", {"request": request, "error": error_message, "email": email})
     else:
         success, message = await activate_user(email, password)
         if success == False:
