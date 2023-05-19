@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, HTTPException, Form, Depends
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.security import HTTPBasicCredentials, HTTPBearer
 from fastapi.templating import Jinja2Templates
+from typing import Optional
 
 from marketing.modules.authentication import get_token_from_cookie, get_current_user, verify_credentials, get_verification_code, verify_activation_code, get_user_initials
 from back_office.modules.accounts import get_login_type_from_email, activate_user
@@ -107,14 +108,16 @@ async def dashboard_form(request: Request, token: str = Depends(get_token_from_c
 
 @router.post("/dashboard")
 async def process_dashboard(request: Request, mode: str = Form(...), start_date: str = Form(...), end_date: str = Form(...),
-                            token: str = Depends(get_token_from_cookie)):
+                            detail_level: str = Form(...), rayon: str = Form(...), csp: str = Form(...), 
+                            num_children: Optional[int] = Form(None), token: str = Depends(get_token_from_cookie)):
     current_user = get_current_user(token)
     user_initials = await get_user_initials(current_user.id_user)
     # Récupération du contenu des champs, à retransmettre
     form_data = await request.form()
-
     # Création du graphique
-    return {"msg": f'{mode} - {start_date} - {end_date}'}
+
+    #return [form_data]
+    return {"msg": f'{mode} - {start_date} - {end_date} - {num_children} - {rayon}'}
     """
     creation_user_success, creation_message = await dashboard_account(prenom=surname, nom=name, email=email, role=role,
                                                                         verification_code=verification_code)
