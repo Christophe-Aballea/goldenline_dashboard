@@ -16,28 +16,22 @@ def check_prerequisites(host, port, user, password):
         try:
             # Vérification de l'existence de l'utilisateur
             cursor.execute("SELECT 1 FROM pg_roles WHERE rolname=%s;", (user,))
-            if cursor.rowcount == 1:
-                try:
-                    # Vérification des droits de l'utilisateur
-                    cursor.execute("SELECT rolcreatedb, rolcreaterole FROM pg_roles WHERE rolname=%s;", (user,))
-                    can_create_db, can_create_role = cursor.fetchone()
-                    if not (can_create_db and can_create_role):
-                        prerequisites = False
-                except:
-                    prerequisites = False
-            else:
+            if cursor.rowcount != 1:
                 prerequisites = False
 
-        except psycopg2.OperationalError:
+        except psycopg2.OperationalError as e:
+            print(str(e))
             prerequisites = False
-        except InsufficientPrivilege:
+        except InsufficientPrivilege as e:
+            print(str(e))
             prerequisites = False
         finally:
             # Fermeture des connexions
             cursor.close()
             conn.close()
 
-    except psycopg2.OperationalError:
+    except psycopg2.OperationalError as e:
+        print(str(e))
         prerequisites = False
     if prerequisites == False:
         message = ["Connexion refusée par le serveur",
