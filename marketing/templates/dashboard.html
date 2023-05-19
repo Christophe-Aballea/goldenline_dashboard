@@ -13,15 +13,15 @@
                 <label for="mode">Option</label>
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="mode" id="depense" value="depenses" checked>
-                    <label class="form-check-label" for="option1">Dépenses</label>
+                    <label class="form-check-label" for="depense">Dépenses</label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="mode" id="panier" value="panier_moyen">
-                    <label class="form-check-label" for="option2">Panier moyen</label>
+                    <label class="form-check-label" for="panier">Panier moyen</label>
                 </div>
             </div>
             <div class="form-group">
-                <label>Période</label>
+                <label for="period">Période</label>
                 <div class="row">
                     <div class="col">
                         <input type="date" class="form-control" placeholder="Date de début" name="start_date" id="start_date">
@@ -31,9 +31,46 @@
                     </div>
                 </div>
             </div>
-            <!---->
             <div class="form-group">
-                <button type="submit" class="btn btn-primary">Mettre à jour le graphique</button>
+                <label for="detail_level">Niveau de détail</label>
+                <select class="form-control" name="detail_level" id="detail_level">
+                    <option value="collecte">Collecte</option>
+                    <option value="jour">Jour</option>
+                    <option value="mois">Mois</option>
+                    <option value="annee">Année</option>
+                    <option value="trimestre">Trimestre</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="rayon">Rayon</label>
+                <select class="form-control" name="rayon" id="rayon">
+                    <option value="tous">Tous</option>
+                    <option value="alimentation">Alimentation</option>
+                    <option value="dph">DPH</option>
+                    <option value="textile">Textile</option>
+                    <option value="multimedia">Multimédia</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="csp">CSP</label>
+                <select class="form-control" name="csp" id="csp">
+                    <option value="tous">Tous</option>
+                    <option value="agriculteurs">Agriculteurs exploitants</option>
+                    <option value="artisans">Artisans, commerçants, chefs d'entreprise</option>
+                    <option value="cadres">Cadres et professions intellectuelles supérieures</option>
+                    <option value="intermediaires">Professions intermédiaires</option>
+                    <option value="employes">Employés</option>
+                    <option value="ouvriers">Ouvriers</option>
+                    <option value="retraites">Retraités</option>
+                    <option value="sans_activite">Sans activité professionnelle</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="num_children">Nombre d'enfants</label>
+                <input type="number" class="form-control" name="num_children" id="num_children">
+            </div>
+            <div class="form-group d-flex flex-column flex-md-row justify-content-between">
+                <button type="submit" class="btn btn-primary mb-2 mb-md-0">Mettre à jour le graphique</button>
                 <button type="button" class="btn btn-secondary">Download</button>
             </div>
         </form>
