@@ -3,9 +3,12 @@ from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.security import HTTPBasicCredentials, HTTPBearer
 from fastapi.templating import Jinja2Templates
 from typing import Optional
+import json
 
 from marketing.modules.authentication import get_token_from_cookie, get_current_user, verify_credentials, get_verification_code, verify_activation_code, get_user_initials
 from back_office.modules.accounts import get_login_type_from_email, activate_user
+from db.database import run_in_db_session
+import api.routers.api_routes as api
 
 
 router       = APIRouter()
@@ -107,28 +110,28 @@ async def dashboard_form(request: Request, token: str = Depends(get_token_from_c
                                            "active_page": "dashboard"})
 
 @router.post("/dashboard")
-async def process_dashboard(request: Request, mode: str = Form(...), start_date: str = Form(...), end_date: str = Form(...),
-                            detail_level: str = Form(...), rayon: str = Form(...), csp: str = Form(...), 
+async def process_dashboard(request: Request, mode: Optional[str] = Form('CA'), start_date: Optional[str] = Form(None), end_date: Optional[str] = Form(None),
+                            detail_level: Optional[str] = Form('M'), rayon: Optional[str] = Form(None), csp: Optional[str] = Form(None), 
                             num_children: Optional[int] = Form(None), token: str = Depends(get_token_from_cookie)):
     current_user = get_current_user(token)
     user_initials = await get_user_initials(current_user.id_user)
     # Récupération du contenu des champs, à retransmettre
-    form_data = await request.form()
+    # form_data = await request.form()
+    # 
+    # Récupération des données via l'api '/collecte'
+    #result = await run_in_db_session(api.read_collectes, mode=mode, start_date=start_date, end_date=end_date, level=detail_level, category=rayon, csp=csp, number_of_children=num_children)
+    params = [mode, start_date, end_date, detail_level, rayon, csp, num_children]
+    print(f"Params : {params}")
+    result = await run_in_db_session(api.read_collectes, mode, start_date, end_date, detail_level, rayon, csp, num_children)
+
+    #result = await api.read_collectes(mode=mode, start_date=start_date, end_date=end_date, level=detail_level, category=rayon, csp=csp, number_of_children=num_children)
+    response_body = result.body.decode()  # decode bytes to string
+    response_json = json.loads(response_body)  # load string into JSON
+    print(response_json)
+
     # Création du graphique
 
     #return [form_data]
-    return {"msg": f'{mode} - {start_date} - {end_date} - {num_children} - {rayon}'}
-    """
-    creation_user_success, creation_message = await dashboard_account(prenom=surname, nom=name, email=email, role=role,
-                                                                        verification_code=verification_code)
-    if creation_user_success:
-        key_user = "creation_success"
-        form_data = {"name": "", "surname": "", "email": "", "role": ""}
-    else:
-        key_user = "user_creation_error"
-    return templates.TemplateResponse("dashboard.html",
-                                      {"request": request, "verification_code": verification_code, key_user: creation_message,
-                                       "user_initials": user_initials, "verification_code": verification_code, "form_data": form_data,
-                                       "active_page": "dashboard"})
-    """
+    return {"msg": f'{mode} - {start_date} - {end_date} - {detail_level} - {rayon} - {num_children} - {csp}'}
+
 
