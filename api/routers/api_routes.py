@@ -7,7 +7,7 @@ import pandas as pd
 from typing import Optional
 from datetime import date
 
-from db.database import get_db
+from db.database import get_db, db_session_var
 from api.models import Collecte, Achat, Categorie, CSP, Client
 
 router = APIRouter()
@@ -23,9 +23,10 @@ async def read_collectes(mode: Optional[str] = "CA",
                          csp: Optional[str] = None,
                          number_of_children: Optional[int] = None,
                          skip: int =0,
-                         limit: int =10000,
-                         db: Session = Depends(get_db)):
+                         limit: int =10000):
     global category_names
+    db = next(get_db())
+    db_session_var.set(db)
 
     # Mise au bon format des arguments
     level = None if level is None else level.upper()
