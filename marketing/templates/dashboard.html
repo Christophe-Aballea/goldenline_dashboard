@@ -54,7 +54,7 @@
 					<div class="form-group">
 						<label for="csp">CSP</label>
 						<select class="form-control" name="csp" id="csp">
-							<option value="" {% if form_data.CSP == '' %} selected {% endif %}>Tous</option>
+							<option value="" {% if form_data.CSP == '' %} selected {% endif %}>Toutes</option>
 							<option value="AE" {% if form_data.CSP == 'AE' %} selected {% endif %}>Agriculteurs exploitants</option>
 							<option value="ACCE" {% if form_data.CSP == 'ACCE' %} selected {% endif %}>Artisans, commerçants, chefs d'entreprise</option>
 							<option value="CPIS" {% if form_data.CSP == 'CPIS' %} selected {% endif %}>Cadres et professions intellectuelles supérieures</option>
@@ -70,8 +70,8 @@
 						<input type="number" class="form-control" name="num_children" id="num_children" value="{{ form_data.num_children if form_data.num_children else '' }}">
 					</div>
 					<div class="form-group d-flex flex-column flex-md-row justify-content-between">
-						<button type="submit" class="btn btn-primary mb-2 mb-md-0">Mettre à jour le graphique</button>
 						<button type="button" class="btn btn-secondary">Download</button>
+						<button type="submit" class="btn btn-primary mb-2 mb-md-0">Visualiser</button>
 					</div>
 				</form>
 			</div>
@@ -92,8 +92,9 @@
             </div>
             {% endfor %}
         {% else %}
-    		<h3>Cliquer sur "Mettre à jour le graphique"</h3>
+    		<h3>Cliquer sur "Visualiser"</h3>
 		{% endif %}
 	</div>
 </div>
+<script src="/marketinh/static/js/marketing.js"></script>
 {% endblock %}
