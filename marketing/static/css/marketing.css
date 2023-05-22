@@ -1,13 +1,7 @@
 .logo {
     max-width: 200px;
 }
-.container {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
+
 .actions {
     text-align: left;
 }

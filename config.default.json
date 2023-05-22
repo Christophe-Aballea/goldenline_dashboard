@@ -48,11 +48,11 @@
         ]
     },
     "database": {
-        "host": "",
-        "port": "",
-        "user": "",
-        "password": "",
-        "db_name": "",
+        "host": "172.0.0.1",
+        "port": "5432",
+        "user": "dvpt",
+        "password": "*****",
+        "db_name": "add db_name",
         "source_schema": "",
         "marketing_schema": "",
         "users_schema": ""
