@@ -60,7 +60,7 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
             url = "first_login.html"
             key = "success_message"
         else:
-            url = "login.thml"
+            url = "login.html"
             key = "error"
         return templates.TemplateResponse(url, {"request": request, key: message, "email": email})
     else:
@@ -311,22 +311,6 @@ async def process_create_user(request: Request, name: str = Form(...), surname: 
                                        "active_page": "create_user"})
 
 
-'''
-@router.post("/users-management")
-async def filtered_accounts_list():
-#    current_user = get_current_user(token)
-#    if current_user.id_role not in [1, 2]:  # 1 et 2 sont les identifiants de rôle de superadmin et admin
-#        raise HTTPException(status_code=403, detail="Forbidden")
-#    else:
-    if not is_in_production():
-        # Mise à jour du statut de l'étape (terminée) et l'état d'avancement
-        config.update_config("production", True)
-        config.set_stage_completed("move_to_production")
-        config.increment_stage()
-
-    return {"message": 'entrée dans route.post("/users-management")'}
-''' 
-
 # Déconnexion
 @router.get("/logout", response_class=HTMLResponse)
 async def logout(request: Request):
@@ -343,11 +327,3 @@ async def generate_data_status(task_id: str):
         return {"status": "not_found"}
     return {"status": status}
 
-
-# Route test authentification
-@router.get("/proute")
-async def proute(token: str = Depends(get_token_from_cookie)):
-    current_user = get_current_user(token)
-    if current_user.id_role not in [1, 2]:  # 1 et 2 sont les identifiants de rôle de superadmin et admin
-        raise HTTPException(status_code=403, detail="Forbidden")
-    return {"message": "Authorized"}
