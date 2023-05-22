@@ -1,90 +1,99 @@
 {% extends "base_marketing.html" %}
-
-{% block title %}
-    Dashboard
-{% endblock %}
-
+{% block title %}Dashboard{% endblock %}
 {% block content %}
 <div class="row">
-    <div class="col-md-4">
-        <h2>Paramètres du graphique</h2>
-        <form action="/marketing/dashboard" method="post">
-            <div class="form-group">
-                <label for="mode">Option</label>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="mode" id="depense" value="CA" {% if form_data.mode == 'CA' or form_data.mode is not defined %} checked {% endif %}>
-                    <label class="form-check-label" for="depense">Chiffre d'affaires</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="mode" id="panier" value="PM" {% if form_data.mode == 'PM' %} checked {% endif %}>
-                    <label class="form-check-label" for="panier">Panier moyen</label>
-                </div>
+	<div class="col-md-3">
+		<div class="card my-4">
+			<div class="card-header">                
+				<h3 class="card-title">Filtres</h2>
             </div>
-                        <div class="form-group">
-                <label for="period">Période</label>
-                <div class="row">
-                    <div class="col">
-                        <input type="date" class="form-control" placeholder="Date de début" name="start_date" id="start_date" value="{{ form_data.start_date if form_data.start_date else '' }}">
+				<div class="card-body">
+                    <form action="/marketing/dashboard" method="post">
+					<div class="form-group">
+						<label for="mode">Option</label>
+						<div class="form-check">
+							<input class="form-check-input" type="radio" name="mode" id="depense" value="CA" {% if form_data.mode == 'CA' or form_data.mode is not defined %} checked {% endif %}>
+							<label class="form-check-label" for="depense">Chiffre d'affaires</label>
+						</div>
+						<div class="form-check">
+							<input class="form-check-input" type="radio" name="mode" id="panier" value="PM" {% if form_data.mode == 'PM' %} checked {% endif %}>
+							<label class="form-check-label" for="panier">Panier moyen</label>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="period">Période</label>
+						<div class="row">
+							<div class="col">
+								<input type="date" class="form-control" placeholder="Date de début" name="start_date" id="start_date" value="{{ form_data.start_date if form_data.start_date else '' }}">
+							</div>
+							<div class="col">
+								<input type="date" class="form-control" placeholder="Date de fin" name="end_date" id="end_date" value="{{ form_data.end_date if form_data.end_date else '' }}">
+							</div>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="detail_level">Niveau de détail</label>
+						<select class="form-control" name="detail_level" id="detail_level">
+							<option value="C" {% if form_data.detail_level == 'C' %} selected {% endif %}>Collecte</option>
+							<option value="J" {% if form_data.detail_level == 'J' %} selected {% endif %}>Jour</option>
+							<option value="M" {% if form_data.detail_level == 'M' or form_data.detail_level is not defined %} selected {% endif %}>Mois</option>
+							<option value="T" {% if form_data.detail_level == 'T' %} selected {% endif %}>Trimestre</option>
+							<option value="A" {% if form_data.detail_level == 'A' %} selected {% endif %}>Année</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label for="rayon">Rayon</label>
+						<select class="form-control" name="rayon" id="rayon">
+							<option value="" {% if form_data.rayon == '' %} selected {% endif %}>Tous</option>
+							<option value="Alimentaire" {% if form_data.rayon == 'Alimentaire' %} selected {% endif %}>Alimentaire</option>
+							<option value="DPH" {% if form_data.rayon == 'DPH' %} selected {% endif %}>DPH</option>
+							<option value="Textile" {% if form_data.rayon == 'Textile' %} selected {% endif %}>Textile</option>
+							<option value="Multimedia" {% if form_data.rayon == 'Multimedia' %} selected {% endif %}>Multimédia</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label for="csp">CSP</label>
+						<select class="form-control" name="csp" id="csp">
+							<option value="" {% if form_data.CSP == '' %} selected {% endif %}>Tous</option>
+							<option value="AE" {% if form_data.CSP == 'AE' %} selected {% endif %}>Agriculteurs exploitants</option>
+							<option value="ACCE" {% if form_data.CSP == 'ACCE' %} selected {% endif %}>Artisans, commerçants, chefs d'entreprise</option>
+							<option value="CPIS" {% if form_data.CSP == 'CPIS' %} selected {% endif %}>Cadres et professions intellectuelles supérieures</option>
+							<option value="PI" {% if form_data.CSP == 'PI' %} selected {% endif %}>Professions intermédiaires</option>
+							<option value="E" {% if form_data.CSP == 'E' %} selected {% endif %}>Employés</option>
+							<option value="O" {% if form_data.CSP == 'O' %} selected {% endif %}>Ouvriers</option>
+							<option value="R" {% if form_data.CSP == 'R' %} selected {% endif %}>Retraités</option>
+							<option value="SA" {% if form_data.CSP == 'SA' %} selected {% endif %}>Sans activité professionnelle</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label for="num_children">Nombre d'enfants</label>
+						<input type="number" class="form-control" name="num_children" id="num_children" value="{{ form_data.num_children if form_data.num_children else '' }}">
+					</div>
+					<div class="form-group d-flex flex-column flex-md-row justify-content-between">
+						<button type="submit" class="btn btn-primary mb-2 mb-md-0">Mettre à jour le graphique</button>
+						<button type="button" class="btn btn-secondary">Download</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-9">
+		{% if plots %}
+            {% for plot, title in plots %}
+            <div class="card my-4">
+                <div class="card-header">
+                    <h3 class="card-title">{{ title }}</h3>
+                </div>
+                <div class="card-body">
+                    <div id="chartContainer" style="width: 100%;">
+                        {{ plot | safe }}
                     </div>
-                    <div class="col">
-                        <input type="date" class="form-control" placeholder="Date de fin" name="end_date" id="end_date" value="{{ form_data.end_date if form_data.end_date else '' }}">
-                    </div>
                 </div>
             </div>
-            <div class="form-group">
-                <label for="detail_level">Niveau de détail</label>
-                <select class="form-control" name="detail_level" id="detail_level">
-                    <option value="C" {% if form_data.detail_level == 'C' %} selected {% endif %}>Collecte</option>
-                    <option value="J" {% if form_data.detail_level == 'J' %} selected {% endif %}>Jour</option>
-                    <option value="M" {% if form_data.detail_level == 'M' or form_data.detail_level is not defined %} selected {% endif %}>Mois</option>
-                    <option value="T" {% if form_data.detail_level == 'T' %} selected {% endif %}>Trimestre</option>
-                    <option value="A" {% if form_data.detail_level == 'A' %} selected {% endif %}>Année</option>
-                    <!-- Similar logic for the rest of the options -->
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="rayon">Rayon</label>
-                <select class="form-control" name="rayon" id="rayon">
-                    <option value="" {% if form_data.rayon == '' %} selected {% endif %}>Tous</option>
-                    <option value="Alimentaire" {% if form_data.rayon == 'Alimentaire' %} selected {% endif %}>Alimentaire</option>
-                    <option value="DPH" {% if form_data.rayon == 'DPH' %} selected {% endif %}>DPH</option>
-                    <option value="Textile" {% if form_data.rayon == 'Textile' %} selected {% endif %}>Textile</option>
-                    <option value="Multimedia" {% if form_data.rayon == 'Multimedia' %} selected {% endif %}>Multimédia</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="csp">CSP</label>
-                <select class="form-control" name="csp" id="csp">
-                    <option value="" {% if form_data.CSP == '' %} selected {% endif %}>Tous</option>
-                    <option value="AE" {% if form_data.CSP == 'AE' %} selected {% endif %}>Agriculteurs exploitants</option>
-                    <option value="ACCE" {% if form_data.CSP == 'ACCE' %} selected {% endif %}>Artisans, commerçants, chefs d'entreprise</option>
-                    <option value="CPIS" {% if form_data.CSP == 'CPIS' %} selected {% endif %}>Cadres et professions intellectuelles supérieures</option>
-                    <option value="PI" {% if form_data.CSP == 'PI' %} selected {% endif %}>Professions intermédiaires</option>
-                    <option value="E" {% if form_data.CSP == 'E' %} selected {% endif %}>Employés</option>
-                    <option value="O" {% if form_data.CSP == 'O' %} selected {% endif %}>Ouvriers</option>
-                    <option value="R" {% if form_data.CSP == 'R' %} selected {% endif %}>Retraités</option>
-                    <option value="SA" {% if form_data.CSP == 'SA' %} selected {% endif %}>Sans activité professionnelle</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="num_children">Nombre d'enfants</label>
-                <input type="number" class="form-control" name="num_children" id="num_children" value="{{ form_data.num_children if form_data.num_children else '' }}">
-            </div>
-            <div class="form-group d-flex flex-column flex-md-row justify-content-between">
-                <button type="submit" class="btn btn-primary mb-2 mb-md-0">Mettre à jour le graphique</button>
-                <button type="button" class="btn btn-secondary">Download</button>
-            </div>
-        </form>
-    </div>
-    <div class="col-md-8">
-        <h2>Graphique</h2>
-        <div id="chartContainer" style="height: 300px; width: 100%;">
-            {% if plot %}
-                {{ plot | safe }}
-            {% else %}
-                <h3>Cliquer sur "Mettre à jour le graphique"</h3>
-            {% endif %}
-        </div>
-    </div>
+            {% endfor %}
+        {% else %}
+    		<h3>Cliquer sur "Mettre à jour le graphique"</h3>
+		{% endif %}
+	</div>
 </div>
 {% endblock %}

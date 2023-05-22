@@ -3,12 +3,14 @@ from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.security import HTTPBasicCredentials, HTTPBearer
 from fastapi.templating import Jinja2Templates
 from typing import Optional
+import pandas as pd
 import json
 
 from marketing.modules.authentication import get_token_from_cookie, get_current_user, verify_credentials, get_verification_code, verify_activation_code, get_user_initials
 from back_office.modules.accounts import get_login_type_from_email, activate_user
 from db.database import run_in_db_session
 import api.routers.api_routes as api
+from marketing.modules.graphs import generate_graph
 
 
 router       = APIRouter()
@@ -105,33 +107,39 @@ async def dashboard_form(request: Request, token: str = Depends(get_token_from_c
     else:
         # Récupération des intitiales de l'utilisateur connecté
         user_initials = await get_user_initials(current_user.id_user)
+        # Préparation du graphique par défaut
+        form_data = {"mode": "PM",
+                     "start_date": None,
+                     "end_date": None,
+                     "detail_level": "M",
+                     "rayon": "DPH",
+                     "csp": None,
+                     "num_children": None}
+        data = await run_in_db_session(api.read_collectes, form_data["mode"], form_data["start_date"], form_data["end_date"],
+                                       form_data["detail_level"], form_data["rayon"], form_data["csp"], form_data["num_children"])
+        number_of_charts, plots = generate_graph(data, form_data)
+
         return templates.TemplateResponse("dashboard.html",
-                                          {"request": request, "user_initials": user_initials, "form_data": {},
-                                           "active_page": "dashboard"})
+                                          {"request": request, "user_initials": user_initials, "form_data": form_data,
+                                           "plots": plots})
 
 @router.post("/dashboard")
-async def process_dashboard(request: Request, mode: Optional[str] = Form('CA'), start_date: Optional[str] = Form(None), end_date: Optional[str] = Form(None),
-                            detail_level: Optional[str] = Form('M'), rayon: Optional[str] = Form(None), csp: Optional[str] = Form(None), 
+async def process_dashboard(request: Request, mode: Optional[str] = Form(None), start_date: Optional[str] = Form(None), end_date: Optional[str] = Form(None),
+                            detail_level: Optional[str] = Form(None), rayon: Optional[str] = Form(None), csp: Optional[str] = Form(None), 
                             num_children: Optional[int] = Form(None), token: str = Depends(get_token_from_cookie)):
     current_user = get_current_user(token)
     user_initials = await get_user_initials(current_user.id_user)
-    # Récupération du contenu des champs, à retransmettre
-    # form_data = await request.form()
-    # 
-    # Récupération des données via l'api '/collecte'
-    #result = await run_in_db_session(api.read_collectes, mode=mode, start_date=start_date, end_date=end_date, level=detail_level, category=rayon, csp=csp, number_of_children=num_children)
-    params = [mode, start_date, end_date, detail_level, rayon, csp, num_children]
-    print(f"Params : {params}")
-    result = await run_in_db_session(api.read_collectes, mode, start_date, end_date, detail_level, rayon, csp, num_children)
 
-    #result = await api.read_collectes(mode=mode, start_date=start_date, end_date=end_date, level=detail_level, category=rayon, csp=csp, number_of_children=num_children)
-    response_body = result.body.decode()  # decode bytes to string
-    response_json = json.loads(response_body)  # load string into JSON
-    print(response_json)
+    # Récupération des champs saisis pour retransmission
+    form_data = await request.form()
 
-    # Création du graphique
+    # Récupération des données via l'api '/api/collecte'
+    data = await run_in_db_session(api.read_collectes, mode, start_date, end_date, detail_level, rayon, csp, num_children)
 
-    #return [form_data]
-    return {"msg": f'{mode} - {start_date} - {end_date} - {detail_level} - {rayon} - {num_children} - {csp}'}
+    number_of_charts, plots = generate_graph(data, form_data)
+
+    return templates.TemplateResponse("dashboard.html",
+                                    {"request": request, "plots": plots, "user_initials": user_initials, "form_data": form_data})
+
 
 

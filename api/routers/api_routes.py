@@ -11,7 +11,7 @@ from db.database import get_db, db_session_var
 from api.models import Collecte, Achat, Categorie, CSP, Client
 
 router = APIRouter()
-category_names = ["DPH", "Alimentaire", "Textile", "Multimedia"]
+
 
 
 @router.get("/collecte", response_class=JSONResponse)
@@ -24,7 +24,7 @@ async def read_collectes(mode: Optional[str] = "CA",
                          number_of_children: Optional[int] = None,
                          skip: int =0,
                          limit: int =10000):
-    global category_names
+    category_names = ["DPH", "Alimentaire", "Textile", "Multimedia"]
     db = next(get_db())
     db_session_var.set(db)
 
