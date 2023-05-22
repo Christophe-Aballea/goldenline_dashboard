@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
-from sqlalchemy import func, case, distinct, and_
+from sqlalchemy import func, case, distinct, and_, cast, String
 from sqlalchemy.orm import Session
 from pydantic import create_model
 import pandas as pd
@@ -52,7 +52,7 @@ async def read_collectes(mode: Optional[str] = "CA",
         message = "L'argument 'category' doit être 'dph', 'alimentaire', 'textile', 'multimedia' ou vide (= tous)"
     if csp and csp not in ('AE', 'AACD', 'CPIS', 'PI', 'E', 'O', 'R', 'SAP'):
         are_arguments_valid = False
-        message = "L'argument 'csp' doit être 'AE', 'AACD', 'CPIS', 'PI', 'E', 'O', 'R', 'SAP' ou vide (= toutes)"
+        message = "L'argument 'csp' doit correspondre aux initiales de la csp souhaitée : 'AE', 'AACD', 'CPIS', 'PI', 'E', 'O', 'R', 'SAP' ou vide (= toutes)"
     if number_of_children and number_of_children < 0:
         are_arguments_valid = False
         message = "L'argument 'number_of_children' doit être >= 0 ou vide (= pas de filtre sur l'âge)"
@@ -86,25 +86,37 @@ async def read_collectes(mode: Optional[str] = "CA",
             group_by_elements = [CollecteTable.c.date_passage.label('Date de collecte')]
             order_by_key = [CollecteTable.c.date_passage.label('Date de collecte')]
         elif level == 'M':
-            attributes = {'Mois': (int, ...), 'Année': (int, ...)}
-            column_names = ["Mois", "Année"]
+            attributes = {'Date de collecte': (str, ...)}
+            column_names = ["Date de collecte"]
             query = db.query(
-                func.extract('month', CollecteTable.c.date_passage).label('Mois'),
-                func.extract('year', CollecteTable.c.date_passage).label('Année')
+                func.concat(
+                    func.extract('year', CollecteTable.c.date_passage), 
+                    '-',
+                    func.lpad(cast(func.extract('month', CollecteTable.c.date_passage), String), 2, '0')
+                ).label('Date de collecte')
             )
-            group_by_elements = [func.extract('month', CollecteTable.c.date_passage).label('Mois'),
-                                 func.extract('year', CollecteTable.c.date_passage).label('Année')]
-            order_by_key = ['Année', 'Mois']
+            group_by_elements = [func.concat(
+                                func.extract('year', CollecteTable.c.date_passage), 
+                                '-',
+                                func.lpad(cast(func.extract('month', CollecteTable.c.date_passage), String), 2, '0')
+                                ).label('Date de collecte')]
+            order_by_key = ['Date de collecte']
         elif level == 'T':
-            attributes = {'Trimestre': (int, ...), 'Année': (int, ...)}
-            column_names = ["Trimestre", "Année"]
+            attributes = {'Date de collecte': (str, ...)}
+            column_names = ["Date de collecte"]
             query = db.query(
-                func.extract('quarter', CollecteTable.c.date_passage).label('Trimestre'),
-                func.extract('year', CollecteTable.c.date_passage).label('Année')
+                func.concat(
+                    func.extract('year', CollecteTable.c.date_passage), 
+                    '-T', 
+                    func.extract('quarter', CollecteTable.c.date_passage)
+                ).label('Date de collecte')
             )
-            group_by_elements = [func.extract('quarter', CollecteTable.c.date_passage).label('Trimestre'),
-                                 func.extract('year', CollecteTable.c.date_passage).label('Année')]
-            order_by_key = ['Année', 'Trimestre']
+            group_by_elements = [func.concat(
+                                func.extract('year', CollecteTable.c.date_passage), 
+                                '-T', 
+                                func.extract('quarter', CollecteTable.c.date_passage)
+                                ).label('Date de collecte')]
+            order_by_key = ['Date de collecte']
         elif level == 'A':
             column_names = ["Année"]
             attributes = {'Année': (int, ...)}
@@ -215,15 +227,20 @@ async def read_collectes(mode: Optional[str] = "CA",
                     for key, value in dict(zip(column_names, result)).items()
                     }) for result in results]
     
-    # Réponse JSON si mode = CA
-    if mode == 'CA':
-        return JSONResponse([model.dict() for model in collectes])        
+#    # Réponse JSON si mode = CA
+#    if mode == 'CA':
+#        return JSONResponse([model.dict() for model in collectes])        
 
     # Calcul des peniers moyens par catégorie si mode = Panier ou Export
-    else:
-        # Transformation du dictionnaire en dataframe
-        collectes = pd.DataFrame([collecte.dict() for collecte in collectes])
+#    else:
+    # Transformation du dictionnaire en dataframe
+    collectes = pd.DataFrame([collecte.dict() for collecte in collectes])
+
+    if category is not None:
+        for col in collectes.columns:
+            if col.endswith('al'): del collectes[col]
         
+    if mode in ['PM', 'E']:
         # Ajout du panier moyen
         for category_name in category_names:
             collectes[f"Nombre de collectes {category_name}"].astype(int)
@@ -234,7 +251,7 @@ async def read_collectes(mode: Optional[str] = "CA",
         if mode == 'PM':
             for col in collectes.columns:
                 if 'CA' in col: del collectes[col]
+            
+    result = collectes.to_dict('records')
 
-        result = collectes.to_dict('records')
-
-        return JSONResponse(content=result)
+    return JSONResponse(content=result)
