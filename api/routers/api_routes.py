@@ -118,11 +118,11 @@ async def read_collectes(mode: Optional[str] = "CA",
                                 ).label('Date de collecte')]
             order_by_key = ['Date de collecte']
         elif level == 'A':
-            column_names = ["Année"]
-            attributes = {'Année': (int, ...)}
-            query = db.query(func.extract('year', CollecteTable.c.date_passage).label('Année'))
-            group_by_elements = [func.extract('year', CollecteTable.c.date_passage).label('Année')]
-            order_by_key = ['Année']
+            column_names = ["Date de collecte"]
+            attributes = {'Date de collecte': (int, ...)}
+            query = db.query(func.extract('year', CollecteTable.c.date_passage).label('Date de collecte'))
+            group_by_elements = [func.extract('year', CollecteTable.c.date_passage).label('Date de collecte')]
+            order_by_key = ['Date de collecte']
         
         # CSP
         if csp is not None:
