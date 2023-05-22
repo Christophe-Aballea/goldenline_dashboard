@@ -112,7 +112,7 @@ async def dashboard_form(request: Request, token: str = Depends(get_token_from_c
                      "start_date": None,
                      "end_date": None,
                      "detail_level": "M",
-                     "rayon": "DPH",
+                     "rayon": "Textile",
                      "csp": None,
                      "num_children": None}
         data = await run_in_db_session(api.read_collectes, form_data["mode"], form_data["start_date"], form_data["end_date"],
