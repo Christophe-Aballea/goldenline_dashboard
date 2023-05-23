@@ -9,9 +9,6 @@ from marketing.routers import marketing_routes
 
 app = FastAPI()
 
-# Configure Jinja2 templates
-#templates = Jinja2Templates(directory="back_office/templates")
-#templates = Jinja2Templates(directory="marketing/templates")
 
 # Montage des routeurs api, back-office et le marketing_frontend
 app.include_router(back_office_routes.router, prefix="/back-office", tags=["back-office"])
