@@ -79,12 +79,12 @@ Ce projet a pour objectif de fournir un outil d'analyse de données pour le serv
   ```
 - Exécuter le projet en local
   ``` bash
-  $ flask --app goldenline-be:back run
+  $ uvicorn main:app --reload
   ```
 
 ## Utilisation
 
-Le terminal dans lequel la commande `uvicorn` a été excécutée doit afficher le lien à ouvrir dans un navigateur. Exemple : `* Running on http://127.0.0.1:8000`.  
+Le terminal dans lequel la commande `uvicorn` a été excécutée doit afficher le lien à ouvrir dans un navigateur. Exemple : `Uvicorn running on http://127.0.0.1:8000`.  
 
 <p align="center"><img src="marketing/static/img/mep0.png" width="307" height="664"></p>  
 Au premier lancement le système vérifie le statut du projet et propose sa mise en production.  
