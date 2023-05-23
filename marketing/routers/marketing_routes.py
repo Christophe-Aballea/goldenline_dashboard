@@ -11,6 +11,7 @@ from back_office.modules.accounts import get_login_type_from_email, activate_use
 from db.database import run_in_db_session
 import api.routers.api_routes as api
 from marketing.modules.graphs import generate_graph
+from marketing.modules.data_utils import get_libelle_csp_from_initials
 
 
 router       = APIRouter()
@@ -170,7 +171,7 @@ async def process_dashboard(request: Request, mode: Optional[str] = Form(None), 
     collectes = pd.DataFrame.from_records(response_json)  # JSON -> DataFrame
 
     plots = generate_graph(collectes, form_data)
-    
+
     details = []
     if start_date:
         details.append(f"Date de début : {start_date}")
@@ -179,7 +180,7 @@ async def process_dashboard(request: Request, mode: Optional[str] = Form(None), 
     if rayon:
         details.append(f"Rayon : {rayon}")
     if csp:
-        details.append(f"CSP : {csp}")
+        details.append(f"CSP : {get_libelle_csp_from_initials(csp)}")
     if num_children:
         details.append(f"Nombre d'enfants : {num_children}")
 
