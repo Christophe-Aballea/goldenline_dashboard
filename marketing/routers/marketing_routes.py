@@ -173,6 +173,9 @@ async def process_dashboard(request: Request, action: Optional[str] = Form(None)
                                                 "user_initials": user_initials,
                                                 "form_data": form_data})
         collectes = pd.DataFrame.from_records(response_json)  # JSON -> DataFrame
+        if 'Numéro de collecte' in collectes.columns:
+            collectes = collectes.rename(columns={'Numéro de collecte': 'Numero de collecte'})
+
         if num_rows is not None:
             collectes = collectes.head(num_rows)
         collectes.to_csv("gl_data.csv", index=False, mode="w", sep=";", encoding='utf8')
