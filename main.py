@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import RedirectResponse, HTMLResponse
 
 from api.routers import api_routes
 from back_office.routers import back_office_routes
@@ -21,6 +22,6 @@ app.include_router(marketing_routes.router, prefix="/marketing", tags=["marketin
 app.mount("/back-office/static", StaticFiles(directory="back_office/static"), name="back-office-static")
 app.mount("/marketing/static", StaticFiles(directory="marketing/static"), name="marketing-static")
 
-@app.get("/")
+@app.get("/", response_class=RedirectResponse)
 def read_root():
-    return {"Hello": "World"}
+    return RedirectResponse(url="/marketing/login")
