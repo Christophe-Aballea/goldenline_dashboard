@@ -164,7 +164,7 @@ async def process_dashboard(request: Request, action: Optional[str] = Form(None)
                                               {"request": request, "error": error, "user_initials": user_initials,
                                                "form_data": form_data})
         
-        data = await run_in_db_session(api.read_collectes, 'E', start_date, end_date, detail_level, rayon, csp, num_children)
+        data = await run_in_db_session(api.read_collectes, 'E', start_date, end_date, detail_level, rayon, csp, num_children, limit=40000)
         response_body = data.body.decode()                    # decodage bytes -> string
         response_json = json.loads(response_body)             # string -> JSON
         if "error" in response_json:

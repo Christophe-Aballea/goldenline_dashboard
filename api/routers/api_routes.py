@@ -23,7 +23,7 @@ async def read_collectes(mode: Optional[str] = "CA",
                          csp: Optional[str] = None,
                          number_of_children: Optional[int] = None,
                          skip: int =0,
-                         limit: int =10000):
+                         limit: int =50000):
     category_names = ["DPH", "Alimentaire", "Textile", "Multimedia"]
     db = next(get_db())
     db_session_var.set(db)
@@ -219,7 +219,7 @@ async def read_collectes(mode: Optional[str] = "CA",
             )
 
     # Résultats de la requête sous forme de dictionnaire
-    results = collecte_query.offset(skip).limit(limit).all()
+    results = collecte_query.offset(skip).limit(None).all()
     if not results:
         return JSONResponse(content={"error": "Aucune collecte ne correspond à ces critères"})
 
