@@ -40,13 +40,13 @@ Les principes du RGPD et les recommandations de la CNIL doivent être respectés
 
 ## Fonctionnement
 
-<p align="center"><img src="../static/img/creation_schemas.png"></p>
+<p align="center"><img src="static/img/creation_schemas.png"></p>
 
 ## Schéma 'source'
 
 DataPro n'ayant pas accès au logiciel de caisse de Goldenline, les données clientèle récupérées via les cartes de fidélité que les clients présentent à chaque passage en caisse, sont générées de manière aléatoire dans le schéma 'source'.
 
-<p align="center"><img src="../static/img/mcd_source.png"></p>
+<p align="center"><img src="static/img/mcd_source.png"></p>
 
 ## Schéma 'marketing'
 
@@ -68,4 +68,4 @@ DataPro n'ayant pas accès au logiciel de caisse de Goldenline, les données cli
 
 > _Pour des question de performance, ces opérations sont réalisées directement par le moteur de BD PostgreSQL, via une procédure stockée._
 
-<p align="center"><img src="../static/img/mcd_marketing.png"></p>
+<p align="center"><img src="static/img/mcd_marketing.png"></p>
