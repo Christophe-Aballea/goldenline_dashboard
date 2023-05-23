@@ -69,18 +69,13 @@ def pie_chart(data, mode, category):
 
 
 
-def generate_graph(json_response, criteria):
+def generate_graph(collectes, criteria):
     # Dictionnaire des fonctions générant les graphiques
     chart_functions = {"line_chart": line_chart,
                        "lines_chart": lines_chart,
                        "bar_chart": bar_chart,
                        "stacked_bar_chart": stacked_bar_chart,
                        "pie_chart": pie_chart}
-
-    # Récupération des données sous forme de dataframe
-    response_body = json_response.body.decode()           # decodage bytes -> string
-    response_json = json.loads(response_body)             # string -> JSON
-    collectes = pd.DataFrame.from_records(response_json)  # JSON -> DataFrame
 
     # Extraction des critères
     mode = criteria["mode"]
@@ -92,10 +87,8 @@ def generate_graph(json_response, criteria):
     # Choix du (des) type(s) de graphiques à générer
     chart_types = determine_chart_types(category, number_of_collections)
 
-    number_of_charts = len(chart_types)
-
     # Génération des graphiques et conversion en HTML 
     charts_html_strings = [chart_functions[func_name](collectes, mode, category) for func_name in chart_types]
 
-    return number_of_charts, charts_html_strings
+    return charts_html_strings
 
