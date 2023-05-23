@@ -28,7 +28,7 @@ Ce projet a pour objectif de fournir un outil d'analyse de données pour le serv
 ## Technologies utilisées
 
 - Python
-- Flask (Framework Web)
+- FastAPI (Framework Web)
 - Pandas (Bibliothèque de manipulation et d'analyse de données)
 - PostgreSQL (SGBD/R)
 
@@ -70,7 +70,7 @@ Ce projet a pour objectif de fournir un outil d'analyse de données pour le serv
 
 - Cloner le dépôt :
   ``` bash
-  $ git clone https://github.com/Christophe-Aballea/goldenline
+  $ git clone https://github.com/Christophe-Aballea/goldenline_dashboard.git
   ```
 - Installer les dépendances du projet :
   ``` bash
@@ -84,13 +84,13 @@ Ce projet a pour objectif de fournir un outil d'analyse de données pour le serv
 
 ## Utilisation
 
-Le terminal dans lequel la commande `flask` a été excécutée doit afficher le lien à ouvrir dans un navigateur. Exemple : `* Running on http://127.0.0.1:5000`.  
+Le terminal dans lequel la commande `uvicorn` a été excécutée doit afficher le lien à ouvrir dans un navigateur. Exemple : `* Running on http://127.0.0.1:8000`.  
 
-<p align="center"><img src="./static/img/mep0.png" width="307" height="664"></p>  
+<p align="center"><img src="marketing/static/img/mep0.png" width="307" height="664"></p>  
 Au premier lancement le système vérifie le statut du projet et propose sa mise en production.  
 
-<p align="center"><img src="./static/img/mep1.png" width="307" height="664"></p>  
+<p align="center"><img src="marketing/static/img/mep1.png" width="307" height="664"></p>  
 La première étape consiste à vérifier la connectivité au serveur PostgreSQL et l'existence d'un utilisateur d'application avec les droits suffisants.  
 
-<p align="center"><img src="./static/img/mep2.png" width="307" height="664"></p>  
+<p align="center"><img src="marketing/static/img/mep2.png" width="307" height="664"></p>  
 Lorsque les paramètres saisis sont correct, l'écran suivant propose le paramétrage des noms de base de données et schémas, ainsi que le nombre de clients et de collectes à générer. Attention, la mise en production avec le paramétrage de base (3 000 000 de clients / 40 000 000 de collectes) prend un temps certain. Sur une machine équipée de 64 Go de RAM et un processeur Core i9-9900 K 16 coeurs, 3 h 22 min ont été nécessaires.
