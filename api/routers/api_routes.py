@@ -220,19 +220,16 @@ async def read_collectes(mode: Optional[str] = "CA",
 
     # Résultats de la requête sous forme de dictionnaire
     results = collecte_query.offset(skip).limit(limit).all()
-    
+    if not results:
+        return JSONResponse(content={"error": "Aucune collecte ne correspond à ces critères"})
+
     DepensesModel = create_model("DepensesModel", **attributes)
     collectes = [DepensesModel(**{
                     key: value.isoformat() if isinstance(value, date) else value
                     for key, value in dict(zip(column_names, result)).items()
                     }) for result in results]
     
-#    # Réponse JSON si mode = CA
-#    if mode == 'CA':
-#        return JSONResponse([model.dict() for model in collectes])        
 
-    # Calcul des peniers moyens par catégorie si mode = Panier ou Export
-#    else:
     # Transformation du dictionnaire en dataframe
     collectes = pd.DataFrame([collecte.dict() for collecte in collectes])
 
@@ -243,8 +240,14 @@ async def read_collectes(mode: Optional[str] = "CA",
     if mode in ['PM', 'E']:
         # Ajout du panier moyen
         for category_name in category_names:
-            collectes[f"Nombre de collectes {category_name}"].astype(int)
-            collectes[f"Panier moyen {category_name}"] = round(collectes[f"CA {category_name}"] / collectes[f"Nombre de collectes {category_name}"], 2)
+            try:
+                collectes[f"Nombre de collectes {category_name}"].astype(int)
+            except:
+                pass
+            try:
+                collectes[f"Panier moyen {category_name}"] = round(collectes[f"CA {category_name}"] / collectes[f"Nombre de collectes {category_name}"], 2)
+            except:
+                pass
 
         collectes = collectes.fillna(0)
 

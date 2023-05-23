@@ -8,6 +8,13 @@
 				<h3 class="card-title">Filtres</h2>
             </div>
 				<div class="card-body">
+                    {% if error %}
+                    {% for message in error %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                    {%endif %}
                     <form action="/marketing/dashboard" method="post">
 					<div class="form-group">
 						<label for="mode">Option</label>
@@ -54,15 +61,15 @@
 					<div class="form-group">
 						<label for="csp">CSP</label>
 						<select class="form-control" name="csp" id="csp">
-							<option value="" {% if form_data.CSP == '' %} selected {% endif %}>Toutes</option>
-							<option value="AE" {% if form_data.CSP == 'AE' %} selected {% endif %}>Agriculteurs exploitants</option>
-							<option value="ACCE" {% if form_data.CSP == 'ACCE' %} selected {% endif %}>Artisans, commerçants, chefs d'entreprise</option>
-							<option value="CPIS" {% if form_data.CSP == 'CPIS' %} selected {% endif %}>Cadres et professions intellectuelles supérieures</option>
-							<option value="PI" {% if form_data.CSP == 'PI' %} selected {% endif %}>Professions intermédiaires</option>
-							<option value="E" {% if form_data.CSP == 'E' %} selected {% endif %}>Employés</option>
-							<option value="O" {% if form_data.CSP == 'O' %} selected {% endif %}>Ouvriers</option>
-							<option value="R" {% if form_data.CSP == 'R' %} selected {% endif %}>Retraités</option>
-							<option value="SA" {% if form_data.CSP == 'SA' %} selected {% endif %}>Sans activité professionnelle</option>
+							<option value="" {% if form_data.csp == '' %} selected {% endif %}>Toutes</option>
+							<option value="AE" {% if form_data.csp == 'AE' %} selected {% endif %}>Agriculteurs exploitants</option>
+							<option value="ACCE" {% if form_data.csp == 'ACCE' %} selected {% endif %}>Artisans, commerçants, chefs d'entreprise</option>
+							<option value="CPIS" {% if form_data.csp == 'CPIS' %} selected {% endif %}>Cadres et professions intellectuelles supérieures</option>
+							<option value="PI" {% if form_data.csp == 'PI' %} selected {% endif %}>Professions intermédiaires</option>
+							<option value="E" {% if form_data.csp == 'E' %} selected {% endif %}>Employés</option>
+							<option value="O" {% if form_data.csp == 'O' %} selected {% endif %}>Ouvriers</option>
+							<option value="R" {% if form_data.csp == 'R' %} selected {% endif %}>Retraités</option>
+							<option value="SA" {% if form_data.csp == 'SA' %} selected {% endif %}>Sans activité professionnelle</option>
 						</select>
 					</div>
 					<div class="form-group">
@@ -83,6 +90,11 @@
             <div class="card my-4">
                 <div class="card-header">
                     <h3 class="card-title">{{ title }}</h3>
+                    {% if details %}
+                    {% for detail in details %}
+                        <p class="card-title">{{ detail }}</p>
+                    {% endfor %}
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     <div id="chartContainer" style="width: 100%;">
@@ -91,8 +103,6 @@
                 </div>
             </div>
             {% endfor %}
-        {% else %}
-    		<h3>Cliquer sur "Visualiser"</h3>
 		{% endif %}
 	</div>
 </div>

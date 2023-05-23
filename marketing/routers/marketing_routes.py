@@ -6,7 +6,7 @@ from typing import Optional
 import pandas as pd
 import json
 
-from marketing.modules.authentication import get_token_from_cookie, get_current_user, verify_credentials, get_verification_code, verify_activation_code, get_user_initials
+from marketing.modules.authentication import get_token_from_cookie, get_current_user, verify_credentials, verify_activation_code, get_user_initials
 from back_office.modules.accounts import get_login_type_from_email, activate_user
 from db.database import run_in_db_session
 import api.routers.api_routes as api
@@ -117,7 +117,16 @@ async def dashboard_form(request: Request, token: str = Depends(get_token_from_c
                      "num_children": None}
         data = await run_in_db_session(api.read_collectes, form_data["mode"], form_data["start_date"], form_data["end_date"],
                                        form_data["detail_level"], form_data["rayon"], form_data["csp"], form_data["num_children"])
-        number_of_charts, plots = generate_graph(data, form_data)
+
+
+        # Récupération des données sous forme de dataframe
+        response_body = data.body.decode()                    # decodage bytes -> string
+        response_json = json.loads(response_body)             # string -> JSON
+        #print(response_json)
+
+        collectes = pd.DataFrame.from_records(response_json)  # JSON -> DataFrame
+
+        plots = generate_graph(collectes, form_data)
 
         return templates.TemplateResponse("dashboard.html",
                                           {"request": request, "user_initials": user_initials, "form_data": form_data,
@@ -133,13 +142,47 @@ async def process_dashboard(request: Request, mode: Optional[str] = Form(None), 
     # Récupération des champs saisis pour retransmission
     form_data = await request.form()
 
+    # Gestion des erreurs de saisie
+    error = []
+    if start_date and end_date:
+        if start_date > end_date:
+            error.append("Veuillez vérifier que la date de début est antérieure ou égale à la date de fin.")
+    if num_children and num_children < 0:
+        error.append("Veuillez saisir un nombre d'enfants supérieur ou égal à 0, ou laisser le champ vide.")
+
+    if error:
+        return templates.TemplateResponse("dashboard.html",
+                                          {"request": request, "error": error, "user_initials": user_initials,
+                                           "form_data": form_data})
+
     # Récupération des données via l'api '/api/collecte'
     data = await run_in_db_session(api.read_collectes, mode, start_date, end_date, detail_level, rayon, csp, num_children)
+    
+    response_body = data.body.decode()                    # decodage bytes -> string
+    response_json = json.loads(response_body)             # string -> JSON
 
-    number_of_charts, plots = generate_graph(data, form_data)
+    if "error" in response_json:
+        return templates.TemplateResponse("dashboard.html",
+                                          {"request": request, "error": [response_json["error"]],
+                                            "user_initials": user_initials,
+                                            "form_data": form_data})
+
+    collectes = pd.DataFrame.from_records(response_json)  # JSON -> DataFrame
+
+    plots = generate_graph(collectes, form_data)
+    
+    details = []
+    if start_date:
+        details.append(f"Date de début : {start_date}")
+    if end_date:
+        details.append(f"Date de fin : {end_date}")
+    if rayon:
+        details.append(f"Rayon : {rayon}")
+    if csp:
+        details.append(f"CSP : {csp}")
+    if num_children:
+        details.append(f"Nombre d'enfants : {num_children}")
 
     return templates.TemplateResponse("dashboard.html",
-                                    {"request": request, "plots": plots, "user_initials": user_initials, "form_data": form_data})
-
-
-
+                                        {"request": request, "plots": plots, "user_initials": user_initials,
+                                        "form_data": form_data, "details": details})

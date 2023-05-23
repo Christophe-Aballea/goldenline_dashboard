@@ -34,7 +34,6 @@ async def run_in_db_session(function, *args, **kwargs):
     print(f"SessionLocal() returned {db}")  # add this for debugging
     try:
         db_session_var.set(db)
-        print(f"db_session_var is now {db_session_var.get()}")  # add this for debugging
         result = await function(*args, **kwargs)
         return result
     except Exception as error:
