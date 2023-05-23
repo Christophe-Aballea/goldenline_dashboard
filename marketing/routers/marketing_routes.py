@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException, Form, Depends
-from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
+from fastapi.responses import RedirectResponse, HTMLResponse, FileResponse, JSONResponse
 from fastapi.security import HTTPBasicCredentials, HTTPBearer
 from fastapi.templating import Jinja2Templates
 from typing import Optional
@@ -134,15 +134,15 @@ async def dashboard_form(request: Request, token: str = Depends(get_token_from_c
                                            "plots": plots})
 
 @router.post("/dashboard")
-async def process_dashboard(request: Request, mode: Optional[str] = Form(None), start_date: Optional[str] = Form(None), end_date: Optional[str] = Form(None),
-                            detail_level: Optional[str] = Form(None), rayon: Optional[str] = Form(None), csp: Optional[str] = Form(None), 
-                            num_children: Optional[int] = Form(None), token: str = Depends(get_token_from_cookie)):
+async def process_dashboard(request: Request, action: Optional[str] = Form(None), mode: Optional[str] = Form(None), start_date: Optional[str] = Form(None),
+                            end_date: Optional[str] = Form(None), detail_level: Optional[str] = Form(None), rayon: Optional[str] = Form(None), csp: Optional[str] = Form(None), 
+                            num_children: Optional[int] = Form(None), num_rows: Optional[int] = Form(None), token: str = Depends(get_token_from_cookie)):
     current_user = get_current_user(token)
     user_initials = await get_user_initials(current_user.id_user)
 
     # Récupération des champs saisis pour retransmission
     form_data = await request.form()
-
+    
     # Gestion des erreurs de saisie
     error = []
     if start_date and end_date:
@@ -155,6 +155,27 @@ async def process_dashboard(request: Request, mode: Optional[str] = Form(None), 
         return templates.TemplateResponse("dashboard.html",
                                           {"request": request, "error": error, "user_initials": user_initials,
                                            "form_data": form_data})
+
+    if action == 'telecharger':
+        if num_rows and num_rows <= 0:
+            error = "Veullez saisir un nombre de lignes supérieur à 0, ou laisser vide pour toutes les lignes."
+            return templates.TemplateResponse("dashboard.html",
+                                              {"request": request, "error": error, "user_initials": user_initials,
+                                               "form_data": form_data})
+        
+        data = await run_in_db_session(api.read_collectes, 'E', start_date, end_date, detail_level, rayon, csp, num_children)
+        response_body = data.body.decode()                    # decodage bytes -> string
+        response_json = json.loads(response_body)             # string -> JSON
+        if "error" in response_json:
+            return templates.TemplateResponse("dashboard.html",
+                                            {"request": request, "error": [response_json["error"]],
+                                                "user_initials": user_initials,
+                                                "form_data": form_data})
+        collectes = pd.DataFrame.from_records(response_json)  # JSON -> DataFrame
+        if num_rows is not None:
+            collectes = collectes.head(num_rows)
+        collectes.to_csv("gl_data.csv", index=False, mode="w", sep=";", encoding='utf8')
+        return FileResponse("gl_data.csv", media_type="text/csv", filename="gl_data.csv")
 
     # Récupération des données via l'api '/api/collecte'
     data = await run_in_db_session(api.read_collectes, mode, start_date, end_date, detail_level, rayon, csp, num_children)

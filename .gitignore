@@ -5,3 +5,4 @@ populate_users_schema_tables.sql
 config.json
 *_page.css
 test.py
+gl_data.csv

@@ -76,14 +76,41 @@
 						<label for="num_children">Nombre d'enfants</label>
 						<input type="number" class="form-control" name="num_children" id="num_children" value="{{ form_data.num_children if form_data.num_children else '' }}">
 					</div>
-					<div class="form-group d-flex flex-column flex-md-row justify-content-between">
-						<button type="button" class="btn btn-secondary">Download</button>
-						<button type="submit" class="btn btn-primary mb-2 mb-md-0">Visualiser</button>
-					</div>
-				</form>
+                    <div class="form-group d-flex flex-column flex-md-row justify-content-between">
+                        <input type="hidden" id="action" name="action" value="">
+                        <button type="submit" class="btn btn-primary mb-2 mb-md-0" onclick="document.getElementById('action').value = 'visualiser';">Visualiser</button>
+                    </div>
+                <!--</form>-->
 			</div>
 		</div>
-	</div>
+		<div class="card my-4">
+			<div class="card-header">                
+				<h3 class="card-title">Téléchargement</h2>
+            </div>
+                <!--<form action="/marketing/dashboard" method="post"></form>-->
+				<div class="card-body">
+                    {% if error %}
+                    {% for message in error %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                    {%endif %}
+                    <p>Les données filtrées par les critères ci-dessus peuvent être téléchargées dans un fichier CSV.</p>
+                    <p>En fonction de la quantité de données demandée, cette opération peut prendre un peu de temps.</p>
+                    <form action="/marketing/dashboard" method="post">
+					<div class="form-group">
+						<label for="num_rows">Nombre maximum de lignes :</label>
+						<input type="number" class="form-control" name="num_rows" id="num_rows" value="1000">
+					</div>
+                    <div class="form-group d-flex flex-column flex-md-row justify-content-between">
+                        <input type="hidden" id="action_download" name="action" value="">
+                        <button type="submit" class="btn btn-primary" onclick="document.getElementById('action_download').value = 'telecharger';">Télécharger</button>
+                    </div>
+                                    </form>
+			</div>
+		</div>
+    </div>
 	<div class="col-md-9">
 		{% if plots %}
             {% for plot, title in plots %}
