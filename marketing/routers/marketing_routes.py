@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, HTTPException, Form, Depends
 from fastapi.responses import RedirectResponse, HTMLResponse, FileResponse, JSONResponse
 from fastapi.security import HTTPBasicCredentials, HTTPBearer
 from fastapi.templating import Jinja2Templates
+from starlette.datastructures import FormData
 from typing import Optional
 import pandas as pd
 import json
@@ -109,7 +110,7 @@ async def dashboard_form(request: Request, token: str = Depends(get_token_from_c
         # Récupération des intitiales de l'utilisateur connecté
         user_initials = await get_user_initials(current_user.id_user)
         # Préparation du graphique par défaut
-        form_data = {"mode": "PM",
+        form_data = {"mode": "CA",
                      "start_date": None,
                      "end_date": None,
                      "detail_level": "M",
@@ -175,6 +176,7 @@ async def process_dashboard(request: Request, action: Optional[str] = Form(None)
         if num_rows is not None:
             collectes = collectes.head(num_rows)
         collectes.to_csv("gl_data.csv", index=False, mode="w", sep=";", encoding='utf8')
+        
         return FileResponse("gl_data.csv", media_type="text/csv", filename="gl_data.csv")
 
     # Récupération des données via l'api '/api/collecte'

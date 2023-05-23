@@ -1,6 +1,6 @@
 
 csp = {"AE": "Agriculteurs exploitants",
-       "ACCE": "Artisants, commercants, chefs d'entreprise",
+       "ACCD": "Artisants, commercants, chefs d'entreprise",
        "CPIS": "Cadres et professions intellectuelles supérieures",
        "PI": "Professions intermédiaires",
        "E": "Employés",

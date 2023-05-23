@@ -50,9 +50,9 @@ async def read_collectes(mode: Optional[str] = "CA",
     if category and category not in ('DPH', 'Alimentaire', 'Textile', 'Multimedia'):
         are_arguments_valid = False
         message = "L'argument 'category' doit être 'dph', 'alimentaire', 'textile', 'multimedia' ou vide (= tous)"
-    if csp and csp not in ('AE', 'AACD', 'CPIS', 'PI', 'E', 'O', 'R', 'SAP'):
+    if csp and csp not in ('AE', 'ACCD', 'CPIS', 'PI', 'E', 'O', 'R', 'SAP'):
         are_arguments_valid = False
-        message = "L'argument 'csp' doit correspondre aux initiales de la csp souhaitée : 'AE', 'AACD', 'CPIS', 'PI', 'E', 'O', 'R', 'SAP' ou vide (= toutes)"
+        message = "L'argument 'csp' doit correspondre aux initiales de la csp souhaitée : 'AE', 'ACCD', 'CPIS', 'PI', 'E', 'O', 'R', 'SAP' ou vide (= toutes)"
     if number_of_children and number_of_children < 0:
         are_arguments_valid = False
         message = "L'argument 'number_of_children' doit être >= 0 ou vide (= pas de filtre sur l'âge)"
