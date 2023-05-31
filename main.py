@@ -19,6 +19,17 @@ app.include_router(marketing_routes.router, prefix="/marketing", tags=["marketin
 app.mount("/back-office/static", StaticFiles(directory="back_office/static"), name="back-office-static")
 app.mount("/marketing/static", StaticFiles(directory="marketing/static"), name="marketing-static")
 
+
 @app.get("/", response_class=RedirectResponse)
 def read_root():
     return RedirectResponse(url="/marketing/login")
+
+
+@app.exception_handler(401)
+async def custom_401_handler(_, __):
+    return RedirectResponse(url="/marketing/disconected", status_code=303)
+
+
+@app.exception_handler(402)
+async def custom_402_handler(_, __):
+    return RedirectResponse(url="/back-office/disconected", status_code=303)

@@ -53,8 +53,8 @@
         "user": "dvpt",
         "password": "*****",
         "db_name": "add db_name",
-        "source_schema": "",
-        "marketing_schema": "",
-        "users_schema": ""
+        "source_schema": "caisse",
+        "marketing_schema": "marketing",
+        "users_schema": "users"
     }
 }

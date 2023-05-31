@@ -22,21 +22,20 @@ security     = HTTPBearer()
 ACCESS_TOKEN_EXPIRE_SECONDS = 1_800
 
 
+
 # Route principale "marketing/"
 @router.get("/")
-def read_marketing_html(request: Request):
+async def read_marketing_html(request: Request):
     return RedirectResponse(url="login")
             
 
 # marketing/login/
 @router.get("/login", response_class=HTMLResponse)
-def login(request: Request):
-    print(f"get('/login')")
+async def login(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 @router.post("/login")
 async def login(request: Request, email: str = Form(...), password: str = Form(...)):
-    print('post("/login")')
     email_found, first_login = await get_login_type_from_email(email)
     if email_found == False:
         error_message = first_login
@@ -56,10 +55,10 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
         success, message = await verify_credentials(credentials)
         if success == False:
             error_message = message
-            return templates.TemplateResponse("login.html", {"request": request, "error": error_message, "email": email})
+            print("coucou")
+            return templates.TemplateResponse("/marketing/templates/login.html", {"request": request, "error": error_message, "email": email})
         else:
             token = message
-            #return {"message": f"User {email} connected", "token": f"{token}"}
             response = RedirectResponse(url="/marketing/dashboard", status_code=303)
             response.set_cookie(key="access_token", value=token, httponly=True, max_age=ACCESS_TOKEN_EXPIRE_SECONDS)
             return response
@@ -67,7 +66,7 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
 
 # marketing/first-login/
 @router.get("/first-login", response_class=HTMLResponse)
-def login(request: Request):
+async def login(request: Request):
     return templates.TemplateResponse("first_login.html", {"request": request})
 
 @router.post("/first-login")
@@ -98,6 +97,12 @@ async def logout(request: Request):
     response = RedirectResponse(url="/marketing/login", status_code=303)  # redirige l'utilisateur vers la page d'accueil après la déconnexion
     response.delete_cookie("access_token")
     return response
+
+
+# Utilisteur déconnecté
+@router.get("/disconected", response_class=HTMLResponse)
+async def logout(request: Request):
+    return templates.TemplateResponse("disconected.html", {"request": request, "error": ["Veuillez vous identifer."]})
 
 
 # marketing/dashboard/
@@ -132,7 +137,7 @@ async def dashboard_form(request: Request, token: str = Depends(get_token_from_c
 
         return templates.TemplateResponse("dashboard.html",
                                           {"request": request, "user_initials": user_initials, "form_data": form_data,
-                                           "plots": plots})
+                                           "plots": plots, "id_user": current_user.id_user})
 
 @router.post("/dashboard")
 async def process_dashboard(request: Request, action: Optional[str] = Form(None), mode: Optional[str] = Form(None), start_date: Optional[str] = Form(None),
@@ -155,14 +160,14 @@ async def process_dashboard(request: Request, action: Optional[str] = Form(None)
     if error:
         return templates.TemplateResponse("dashboard.html",
                                           {"request": request, "error": error, "user_initials": user_initials,
-                                           "form_data": form_data})
+                                           "form_data": form_data, "id_user": current_user.id_user})
 
     if action == 'telecharger':
         if num_rows and num_rows <= 0:
             error = "Veullez saisir un nombre de lignes supérieur à 0, ou laisser vide pour toutes les lignes."
             return templates.TemplateResponse("dashboard.html",
                                               {"request": request, "error": error, "user_initials": user_initials,
-                                               "form_data": form_data})
+                                               "form_data": form_data, "id_user": current_user.id_user})
         
         data = await run_in_db_session(api.read_collectes, 'E', start_date, end_date, detail_level, rayon, csp, num_children, limit=40000)
         response_body = data.body.decode()                    # decodage bytes -> string
@@ -171,10 +176,16 @@ async def process_dashboard(request: Request, action: Optional[str] = Form(None)
             return templates.TemplateResponse("dashboard.html",
                                             {"request": request, "error": [response_json["error"]],
                                                 "user_initials": user_initials,
-                                                "form_data": form_data})
+                                                "form_data": form_data, "id_user": current_user.id_user})
         collectes = pd.DataFrame.from_records(response_json)  # JSON -> DataFrame
-        if 'Numéro de collecte' in collectes.columns:
-            collectes = collectes.rename(columns={'Numéro de collecte': 'Numero de collecte'})
+        for column_name in collectes.columns:
+            if 'é' in column_name:
+                collectes = collectes.rename(columns={column_name: column_name.replace('é', 'e')})
+        
+        if 'CSP' in collectes.columns:
+            collectes['CSP'] = collectes['CSP'].str.replace('é', 'e')
+        #if 'Numéro de collecte' in collectes.columns:
+        #    collectes = collectes.rename(columns={'Numéro de collecte': 'Numero de collecte'})
 
         if num_rows is not None:
             collectes = collectes.head(num_rows)
@@ -192,7 +203,7 @@ async def process_dashboard(request: Request, action: Optional[str] = Form(None)
         return templates.TemplateResponse("dashboard.html",
                                           {"request": request, "error": [response_json["error"]],
                                             "user_initials": user_initials,
-                                            "form_data": form_data})
+                                            "form_data": form_data, "id_user": current_user.id_user})
 
     collectes = pd.DataFrame.from_records(response_json)  # JSON -> DataFrame
 
@@ -212,4 +223,11 @@ async def process_dashboard(request: Request, action: Optional[str] = Form(None)
 
     return templates.TemplateResponse("dashboard.html",
                                         {"request": request, "plots": plots, "user_initials": user_initials,
-                                        "form_data": form_data, "details": details})
+                                        "form_data": form_data, "details": details, "id_user": current_user.id_user})
+
+
+# Edit compte current user
+@router.get("/edit-account/{id_user}", response_class=HTMLResponse)
+async def edit(request: Request):
+    return templates.TemplateResponse("not_found.html", {"request": request})
+

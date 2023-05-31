@@ -108,7 +108,7 @@ async def get_token_from_cookie(access_token: str = Cookie(None)):
     if access_token:
         return access_token
     else:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+        raise HTTPException(status_code=401)
 
 def get_current_user(token: str = Depends(get_token_from_cookie)) -> TokenData:
     if token is None:

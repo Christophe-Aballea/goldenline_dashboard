@@ -286,7 +286,7 @@ async def create_user_form(request: Request, token: str = Depends(get_token_from
         verification_code = get_verification_code()
         return templates.TemplateResponse("create_user.html",
                                           {"request": request, "verification_code": verification_code,
-                                           "user_initials": user_initials, "verification_code": verification_code, "form_data": {},
+                                           "user_initials": user_initials, "form_data": {},
                                            "active_page": "create_user"})
 
 @router.post("/create-user")
@@ -307,7 +307,7 @@ async def process_create_user(request: Request, name: str = Form(...), surname: 
         key_user = "user_creation_error"
     return templates.TemplateResponse("create_user.html",
                                       {"request": request, "verification_code": verification_code, key_user: creation_message,
-                                       "user_initials": user_initials, "verification_code": verification_code, "form_data": form_data,
+                                       "user_initials": user_initials, "form_data": form_data,
                                        "active_page": "create_user"})
 
 
@@ -326,4 +326,36 @@ async def generate_data_status(task_id: str):
     if status is None:
         return {"status": "not_found"}
     return {"status": status}
+
+
+# Utilisteur déconnecté
+@router.get("/disconected", response_class=HTMLResponse)
+async def logout(request: Request):
+    return templates.TemplateResponse("disconected.html", {"request": request, "error": ["Veuillez vous identifer"]})
+
+
+# Détail compte
+@router.get("/detail", response_class=HTMLResponse)
+async def detail(request: Request):
+    return templates.TemplateResponse("not_found.html", {"request": request})
+
+
+# Modification compte
+@router.get("/edit", response_class=HTMLResponse)
+async def edit(request: Request):
+    return templates.TemplateResponse("not_found.html", {"request": request})
+
+
+# Suppression compte
+@router.get("/delete", response_class=HTMLResponse)
+async def delete(request: Request):
+    return templates.TemplateResponse("not_found.html", {"request": request})
+
+
+# Edit compte current user
+@router.get("/edit-account/{id_user}", response_class=HTMLResponse)
+async def edit(request: Request):
+    return templates.TemplateResponse("not_found.html", {"request": request})
+
+
 
